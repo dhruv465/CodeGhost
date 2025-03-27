@@ -96,7 +96,7 @@ function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
-    show: false, // Don't show by default
+    show: true, // Don't show by default
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
