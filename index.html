@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>CodeGhost</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #1e1e1e;
+      color: #f0f0f0;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #4CAF50;
+      margin-bottom: 10px;
+    }
+    
+    h2 {
+      color: #4CAF50;
+      margin-top: 30px;
+      margin-bottom: 10px;
+      font-size: 1.5em;
+    }
+    
+    .feature-list {
+      list-style-type: none;
+      padding: 0;
+    }
+    
+    .feature-list li {
+      margin-bottom: 10px;
+      padding: 10px;
+      background-color: #2d2d2d;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .feature-icon {
+      color: #4CAF50;
+      margin-right: 10px;
+      font-size: 20px;
+    }
+    
+    .shortcuts {
+      margin-top: 20px;
+      background-color: #2d2d2d;
+      padding: 15px;
+      border-radius: 5px;
+    }
+    
+    .shortcut-key {
+      background-color: #3d3d3d;
+      color: #4CAF50;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-family: monospace;
+      font-weight: bold;
+      margin: 0 5px;
+    }
+
+    .note {
+      background-color: rgba(76, 175, 80, 0.1);
+      border-left: 4px solid #4CAF50;
+      padding: 10px 15px;
+      margin: 20px 0;
+      border-radius: 3px;
+    }
+    
+    button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    
+    button:hover {
+      background-color: #45a049;
+    }
+
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      color: #888;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>CodeGhost</h1>
+    <p>Your AI coding assistant that stays in the background while you work.</p>
+    
+    <div class="note">
+      <strong>Pro Tip:</strong> CodeGhost now includes new enhanced stealth features to completely hide from screen sharing applications while remaining visible to you.
+    </div>
+    
+    <h2>Features</h2>
+    <ul class="feature-list">
+      <li>
+        <span class="feature-icon">💻</span>
+        <span>Capture any programming problem from your screen and get instant AI solutions</span>
+      </li>
+      <li>
+        <span class="feature-icon">👻</span>
+        <span>Overlay solution stays on screen while you work in any application</span>
+      </li>
+      <li>
+        <span class="feature-icon">🎯</span>
+        <span>Enhanced focus with customizable positioning and transparency</span>
+      </li>
+      <li>
+        <span class="feature-icon">🔍</span>
+        <span>Advanced stealth mode for when you need to keep your assistant private</span>
+      </li>
+      <li>
+        <span class="feature-icon">🛡️</span>
+        <span>Ultra-stealth mode for screen sharing - completely invisible to screen capture software</span>
+      </li>
+      <li>
+        <span class="feature-icon">🎨</span>
+        <span>New modern UI with code syntax highlighting and improved readability</span>
+      </li>
+    </ul>
+    
+    <h2>Keyboard Shortcuts</h2>
+    <div class="shortcuts">
+      <p><span class="shortcut-key">Cmd+G</span> / <span class="shortcut-key">Ctrl+G</span> - Capture problem and generate solution</p>
+      <p><span class="shortcut-key">Cmd+T</span> / <span class="shortcut-key">Ctrl+T</span> - Toggle click-through mode (type behind overlay)</p>
+      <p><span class="shortcut-key">Cmd+S</span> / <span class="shortcut-key">Ctrl+S</span> - Toggle stealth mode (reduces visibility)</p>
+      <p><span class="shortcut-key">Cmd+U</span> / <span class="shortcut-key">Ctrl+U</span> - Toggle ultra-stealth mode (invisible during screen sharing)</p>
+    </div>
+    
+    <h2>Screen Sharing Protection</h2>
+    <p>CodeGhost employs multiple layers of advanced techniques to ensure that your overlay remains visible to you while being completely invisible to screen sharing applications:</p>
+    
+    <ul class="feature-list">
+      <li>
+        <span class="feature-icon">🔒</span>
+        <span>Parent-Child Window Architecture: Uses a special undetectable parent window technique that screen sharing software can't capture</span>
+      </li>
+      <li>
+        <span class="feature-icon">🔄</span>
+        <span>Micro-Movement: Subtle position adjustments that confuse screen capture without affecting usability</span>
+      </li>
+      <li>
+        <span class="feature-icon">🖌️</span>
+        <span>Advanced Rendering: Special CSS and WebGL canvas techniques to break screen capture algorithms</span>
+      </li>
+      <li>
+        <span class="feature-icon">👁️</span>
+        <span>Automatic Detection: Identifies when screen sharing is active and automatically enables ultra-stealth mode</span>
+      </li>
+    </ul>
+    
+    <h2>Getting Started</h2>
+    <p>Press <span class="shortcut-key">Cmd+G</span> / <span class="shortcut-key">Ctrl+G</span> to capture a problem from your screen. The solution will appear in the overlay window.</p>
+    
+    <p>The overlay starts in click-through mode by default, allowing you to type and interact with applications behind it. Press <span class="shortcut-key">Cmd+T</span> / <span class="shortcut-key">Ctrl+T</span> to toggle this behavior when you need to interact with the overlay.</p>
+    
+    <p>If you're sharing your screen, press <span class="shortcut-key">Cmd+U</span> / <span class="shortcut-key">Ctrl+U</span> to activate ultra-stealth mode which makes the overlay completely invisible to screen capture tools.</p>
+    
+    <button id="start-btn">Start CodeGhost</button>
+    
+    <footer>
+      CodeGhost - Your invisible AI programming assistant
+    </footer>
+  </div>
+  
+  <script>
+    document.getElementById('start-btn').addEventListener('click', () => {
+      // This will be handled by the main process
+      window.close();
+    });
+  </script>
+</body>
+</html> 

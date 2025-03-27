@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>CodeGhost</title>
+  <!-- Anti-capture meta tags -->
+  <meta name="apple-pay-not-capturable" content="true">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="screen-capture" content="deny">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;">
+  <!-- Highlight.js CSS (Dracula theme matches our color scheme) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Additional languages for highlight.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/javascript.min.js"></script>
+  <style>
+    :root {
+      --bg-color: rgba(0, 0, 0, 0.92);
+      --text-color: rgba(0, 255, 0, 0.92);
+      --section-title: rgba(0, 255, 0, 0.9);
+      --header-color: rgba(0, 255, 0, 0.95);
+      --cmd-bar-bg: rgba(0, 0, 0, 0.85);
+      --cmd-text: rgba(0, 255, 0, 0.9);
+      --cmd-key-bg: rgba(0, 30, 0, 0.5);
+      --cmd-key-border: rgba(0, 150, 0, 0.5);
+      --skeleton-base: rgba(0, 100, 0, 0.05);
+      --skeleton-highlight: rgba(0, 255, 0, 0.1);
+      --border-color: rgba(0, 150, 0, 0.3);
+    }
+    
+    @font-face {
+      font-family: 'HackerFont';
+      src: local('Menlo'), local('Monaco'), local('Courier New'), monospace;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'HackerFont', 'Menlo', 'Monaco', 'Courier New', monospace;
+      background-color: transparent;
+      color: var(--text-color);
+    }
+    
+    .container {
+      width: 100%;
+      height: 100%;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--bg-color);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0, 100, 0, 0.3);
+      background-image: 
+        radial-gradient(rgba(0, 50, 0, 0.1) 2px, transparent 2px),
+        linear-gradient(rgba(0, 20, 0, 0.1) 1px, transparent 1px);
+      background-size: 50px 50px, 50px 50px;
+      border: 1px solid var(--border-color);
+    }
+    
+    .cmd-bar {
+      position: fixed;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: var(--cmd-bar-bg);
+      color: var(--cmd-text);
+      font-size: 11px;
+      display: flex;
+      padding: 6px 12px;
+      border-radius: 3px;
+      z-index: 9999;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+      width: auto;
+      max-width: 90%;
+      border: 1px solid var(--border-color);
+    }
+    
+    .cmd-group {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 0 5px;
+    }
+    
+    .cmd {
+      display: flex;
+      align-items: center;
+      opacity: 0.85;
+    }
+    
+    .cmd-key {
+      background-color: var(--cmd-key-bg);
+      border-radius: 4px;
+      padding: 1px 5px;
+      margin-right: 4px;
+      font-size: 10px;
+      color: white;
+    }
+    
+    .header {
+      font-size: 12px;
+      color: var(--header-color);
+      margin-top: 8px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      user-select: none;
+    }
+    
+    .header-controls {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .header-control {
+      cursor: pointer;
+      opacity: 0.7;
+    }
+    
+    .header-control:hover {
+      opacity: 1;
+    }
+    
+    .solution-container {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      padding: 5px 0;
+    }
+    
+    .section-header {
+      font-size: 12px;
+      color: var(--section-title);
+      margin-top: 15px;
+      margin-bottom: 8px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+      border-left: 3px solid var(--border-color);
+      padding-left: 7px;
+    }
+    
+    .question, .theory, .code {
+      padding: 0;
+      margin-bottom: 15px;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      overflow-x: hidden;
+    }
+    
+    .question-content, .theory-content {
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+    
+    /* Make sure highlight.js looks good in our UI */
+    .code pre {
+      margin: 0;
+      padding: 0;
+      background: transparent !important;
+      font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-x: hidden;
+    }
+    
+    .hljs {
+      background: transparent !important;
+      padding: 0 !important;
+      overflow-x: hidden !important;
+      white-space: pre-wrap !important;
+      word-wrap: break-word !important;
+    }
+    
+    .resize-handle {
+      height: 4px;
+      background-color: var(--border-color);
+      opacity: 0.3;
+      cursor: ns-resize;
+      margin: 3px 0;
+      border-radius: 2px;
+    }
+    
+    .resize-handle:hover {
+      opacity: 0.7;
+    }
+    
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 3px;
+    }
+    
+    /* Skeleton loading animation */
+    @keyframes skeleton-loading {
+      0% {
+        background-position: -200px 0;
+      }
+      100% {
+        background-position: calc(200px + 100%) 0;
+      }
+    }
+    
+    .skeleton {
+      display: none;
+      animation: skeleton-loading 1.5s infinite linear;
+      background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+      background-size: 200px 100%;
+      border-radius: 4px;
+      height: 14px;
+      margin-bottom: 8px;
+      width: var(--width, 100%);
+    }
+    
+    .skeleton:last-child {
+      margin-bottom: 0;
+    }
+    
+    .skeleton-short {
+      --width: 40%;
+    }
+    
+    .skeleton-medium {
+      --width: 65%;
+    }
+    
+    .skeleton-long {
+      --width: 90%;
+    }
+    
+    .loading .skeleton {
+      display: block;
+    }
+    
+    .loading-content {
+      display: none;
+    }
+    
+    .loading .loading-content {
+      display: block;
+    }
+    
+    .loading .content {
+      display: none;
+    }
+    
+    #click-through-indicator {
+      display: inline-block;
+      font-size: 11px;
+      margin-left: 8px;
+      padding: 2px 6px;
+      background-color: rgba(0, 150, 0, 0.2);
+      border: 1px solid rgba(0, 150, 0, 0.4);
+      border-radius: 10px;
+      color: rgba(255, 255, 255, 0.8);
+      opacity: 0.8;
+    }
+    
+    #click-through-indicator.hidden {
+      display: none;
+    }
+    
+    /* Code snippet copy button */
+    .code-container {
+      position: relative;
+      margin-bottom: 15px;
+    }
+    
+    .copy-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background-color: rgba(0, 30, 0, 0.7);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      border-radius: 3px;
+      padding: 3px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .code-container:hover .copy-btn {
+      opacity: 1;
+    }
+    
+    .copy-btn:hover {
+      background-color: rgba(0, 50, 0, 0.9);
+    }
+    
+    .copy-btn.success {
+      background-color: rgba(0, 100, 0, 0.8);
+    }
+    
+    /* Terminal cursor blink effect */
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    
+    .cursor {
+      display: inline-block;
+      width: 7px;
+      height: 14px;
+      background-color: var(--text-color);
+      animation: blink 1s infinite;
+      vertical-align: middle;
+      margin-left: 2px;
+      margin-bottom: 2px;
+    }
+    
+    /* Glitch animation for header */
+    @keyframes glitch {
+      0% { transform: translate(0); }
+      20% { transform: translate(-1px, 1px); }
+      40% { transform: translate(-1px, -1px); }
+      60% { transform: translate(1px, 1px); }
+      80% { transform: translate(1px, -1px); }
+      100% { transform: translate(0); }
+    }
+    
+    .header div:first-child:hover {
+      animation: glitch 0.3s infinite;
+      animation-timing-function: steps(2);
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="main-container">
+    <div class="cmd-bar">
+      <div class="cmd-group">
+        <div class="cmd">
+          <span class="cmd-key">⌘G</span> Capture
+        </div>
+        <div class="cmd">
+          <span class="cmd-key">⌘S</span> Stealth
+        </div>
+        <div class="cmd">
+          <span class="cmd-key">⌘U</span> Ultra-stealth
+        </div>
+      </div>
+      <div class="cmd-group">
+        <div class="cmd">
+          <span class="cmd-key">⌘T</span> Toggle Click
+        </div>
+        <div class="cmd">
+          <span class="cmd-key">⌘↑↓←→</span> Move
+        </div>
+        <div class="cmd">
+          <span class="cmd-key">⌘1-4</span> Position
+        </div>
+      </div>
+    </div>
+    
+    <div class="header">
+      <div>CodeGhost<span class="cursor"></span> <span id="click-through-indicator" title="Click-through mode active: you can type behind this window">[Click-Through]</span></div>
+      <div class="header-controls">
+        <span class="header-control" id="pin-btn" title="Pin overlay (prevents click-through)">📌</span>
+      </div>
+    </div>
+    <div class="solution-container">
+      <!-- Question section -->
+      <div class="section-header">PROBLEM</div>
+      <div class="question" id="question-section">
+        <div id="question-content" class="content question-content">Waiting for code capture...</div>
+        <div class="loading-content">
+          <div class="skeleton skeleton-short"></div>
+          <div class="skeleton skeleton-medium"></div>
+          <div class="skeleton skeleton-long"></div>
+          <div class="skeleton skeleton-medium"></div>
+          <div class="skeleton skeleton-short"></div>
+        </div>
+      </div>
+      
+      <!-- Theory section -->
+      <div class="section-header">APPROACH</div>
+      <div class="theory" id="theory-section">
+        <div id="theory-content" class="content theory-content">Press ⌘G to capture code and generate solution.</div>
+        <div class="loading-content">
+          <div class="skeleton skeleton-medium"></div>
+          <div class="skeleton skeleton-long"></div>
+          <div class="skeleton skeleton-short"></div>
+          <div class="skeleton skeleton-medium"></div>
+          <div class="skeleton skeleton-medium"></div>
+          <div class="skeleton skeleton-long"></div>
+        </div>
+      </div>
+      
+      <!-- Code section -->
+      <div class="section-header">SOLUTION</div>
+      <div class="code-container">
+        <div class="code" id="code-section">
+          <pre><code id="code-text" class="language-python content">Press ⌘G to capture code and generate solution.</code></pre>
+          <div class="loading-content">
+            <div class="skeleton skeleton-short"></div>
+            <div class="skeleton skeleton-long"></div>
+            <div class="skeleton skeleton-medium"></div>
+            <div class="skeleton skeleton-long"></div>
+            <div class="skeleton skeleton-medium"></div>
+            <div class="skeleton skeleton-long"></div>
+            <div class="skeleton skeleton-medium"></div>
+          </div>
+        </div>
+        <button class="copy-btn" id="copy-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+          </svg>
+          Copy
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    const { ipcRenderer } = require('electron');
+    
+    // Elements
+    const questionContent = document.getElementById('question-content');
+    const theoryContent = document.getElementById('theory-content');
+    const codeText = document.getElementById('code-text');
+    const questionSection = document.getElementById('question-section');
+    const theorySection = document.getElementById('theory-section');
+    const codeSection = document.getElementById('code-section');
+    const mainContainer = document.getElementById('main-container');
+    const pinBtn = document.getElementById('pin-btn');
+    
+    // State
+    let isPinned = false;
+    let isLoading = false;
+    
+    // Show loading state
+    function showLoading() {
+      isLoading = true;
+      questionSection.classList.add('loading');
+      theorySection.classList.add('loading');
+      codeSection.classList.add('loading');
+    }
+    
+    // Hide loading state
+    function hideLoading() {
+      isLoading = false;
+      questionSection.classList.remove('loading');
+      theorySection.classList.remove('loading');
+      codeSection.classList.remove('loading');
+    }
+    
+    // Detect language for syntax highlighting
+    function detectLanguage(code) {
+      // Simple language detection
+      if (code.includes('def ') || code.includes('import ') && code.includes(':')) {
+        return 'python';
+      } else if (code.includes('function ') || code.includes('const ') || code.includes('let ')) {
+        return 'javascript';
+      }
+      return 'plaintext';
+    }
+    
+    // Parse solution into theory and code
+    function parseSolution(solution) {
+      if (!solution) return { theory: '', code: '', language: 'plaintext' };
+      
+      // Check for Python triple quotes
+      if (solution.trim().startsWith("'''")) {
+        const tripleQuoteEnd = solution.indexOf("'''", 3);
+        if (tripleQuoteEnd > 0) {
+          const theory = solution.substring(3, tripleQuoteEnd).trim();
+          const code = solution.substring(tripleQuoteEnd + 3).trim();
+          return { theory, code, language: 'python' };
+        }
+      }
+      
+      // Check if this is a solution with a JavaScript theoretical explanation
+      const theoryMatch = solution.match(/\/\*\s*([\s\S]*?)\s*\*\//);
+      
+      if (theoryMatch) {
+        const theory = theoryMatch[1].trim();
+        const code = solution.substring(theoryMatch[0].length).trim();
+        return { theory, code, language: 'javascript' };
+      }
+      
+      // If no explicit theory part, try to find comments at the beginning
+      const lines = solution.split('\n');
+      let theoryLines = [];
+      let codeLines = [];
+      let inTheory = true;
+      
+      for (const line of lines) {
+        if (inTheory && (line.startsWith('//') || line.startsWith('#') || line.trim() === '')) {
+          theoryLines.push(line);
+        } else {
+          inTheory = false;
+          codeLines.push(line);
+        }
+      }
+      
+      if (theoryLines.length > 0) {
+        const theoryText = theoryLines.join('\n')
+          .replace(/\/\//g, '')  // Remove JS comments
+          .replace(/\#/g, '');   // Remove Python comments
+        
+        const code = codeLines.join('\n');
+        const language = detectLanguage(code);
+        
+        return {
+          theory: theoryText,
+          code,
+          language
+        };
+      }
+      
+      // No theory detected, treat everything as code
+      const code = solution;
+      const language = detectLanguage(code);
+      
+      return { 
+        theory: 'No theoretical explanation provided.', 
+        code, 
+        language 
+      };
+    }
+    
+    // Update the size of the content
+    function updateContentSize() {
+      // Get the actual height of the content
+      const containerHeight = Math.max(
+        mainContainer.scrollHeight,
+        questionSection.scrollHeight + theorySection.scrollHeight + codeSection.scrollHeight + 150
+      );
+      
+      // Send the height to the main process
+      ipcRenderer.send('content-size-changed', containerHeight);
+      
+      // Reposition the command bar when container size changes
+      positionCmdBar();
+    }
+    
+    // Set cmd bar position on load
+    function positionCmdBar() {
+      // No additional positioning needed as it's fixed now
+      // Keeping the function for compatibility
+    }
+    
+    // Event listeners
+    ipcRenderer.on('start-processing', (event) => {
+      console.log('Starting processing, showing skeleton loaders');
+      showLoading();
+    });
+    
+    ipcRenderer.on('set-question', (event, question) => {
+      questionContent.textContent = question;
+    });
+    
+    ipcRenderer.on('update-solution', (event, solution) => {
+      console.log('Received solution update');
+      
+      // Parse into theory and code
+      const { theory, code, language } = parseSolution(solution);
+      
+      // Update the theory section
+      theoryContent.innerHTML = theory;
+      
+      // Update the code section with highlight.js
+      codeText.textContent = code; // Set raw text content first
+      codeText.className = `language-${language}`; // Set language class
+      
+      // Apply highlight.js
+      hljs.highlightElement(codeText);
+      
+      // Hide loading indicators
+      hideLoading();
+      
+      // Update size based on content
+      setTimeout(updateContentSize, 100);
+    });
+    
+    // Pin/unpin functionality
+    pinBtn.addEventListener('click', () => {
+      isPinned = !isPinned;
+      pinBtn.textContent = isPinned ? '📍' : '📌';
+      pinBtn.style.color = isPinned ? '#ff5555' : '';
+      pinBtn.title = isPinned ? "Unpin overlay (enable click-through)" : "Pin overlay (currently click-through enabled)";
+      
+      // Show/hide the click-through indicator
+      const indicator = document.getElementById('click-through-indicator');
+      if (indicator) {
+        if (isPinned) {
+          indicator.classList.add('hidden');
+        } else {
+          indicator.classList.remove('hidden');
+        }
+      }
+      
+      // Tell the main process to toggle click-through
+      ipcRenderer.send('toggle-click-through', !isPinned);
+    });
+    
+    // Listen for window resize
+    window.addEventListener('resize', () => {
+      // Reposition cmd bar when window is resized
+      positionCmdBar();
+      // Update size based on content
+      updateContentSize();
+    });
+    
+    // For stealth mode toggling
+    ipcRenderer.on('set-stealth-mode', (event, enabled) => {
+      console.log('Stealth mode:', enabled);
+      document.body.style.opacity = enabled ? 0.7 : 1.0;
+    });
+    
+    // For ultra-stealth mode toggling (makes more transparent but never completely invisible)
+    ipcRenderer.on('set-ultra-stealth-mode', (event, enabled) => {
+      console.log('Ultra-stealth mode:', enabled);
+      document.body.style.opacity = enabled ? 0.8 : 1.0;
+    });
+    
+    // For click-through mode toggling from keyboard shortcut
+    ipcRenderer.on('update-click-through', (event, isClickThrough) => {
+      console.log('Click-through mode updated:', isClickThrough);
+      
+      // Update the pin button state
+      isPinned = !isClickThrough;
+      pinBtn.textContent = isPinned ? '📍' : '📌';
+      pinBtn.style.color = isPinned ? '#ff5555' : '';
+      pinBtn.title = isPinned ? "Unpin overlay (enable click-through)" : "Pin overlay (currently click-through enabled)";
+      
+      // Show/hide the click-through indicator
+      const indicator = document.getElementById('click-through-indicator');
+      if (indicator) {
+        if (isPinned) {
+          indicator.classList.add('hidden');
+        } else {
+          indicator.classList.remove('hidden');
+        }
+      }
+    });
+    
+    // Copy code to clipboard
+    const copyBtn = document.getElementById('copy-btn');
+    
+    copyBtn.addEventListener('click', () => {
+      // Get the text content
+      const codeToCopy = codeText.textContent;
+      
+      // Copy to clipboard
+      navigator.clipboard.writeText(codeToCopy)
+        .then(() => {
+          // Success feedback
+          copyBtn.classList.add('success');
+          copyBtn.textContent = '✓ Copied!';
+          
+          // Reset after 2 seconds
+          setTimeout(() => {
+            copyBtn.classList.remove('success');
+            copyBtn.innerHTML = `
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+              </svg>
+              Copy
+            `;
+          }, 2000);
+        })
+        .catch(err => {
+          console.error('Error copying text: ', err);
+          copyBtn.textContent = '❌ Failed';
+          
+          // Reset after 2 seconds
+          setTimeout(() => {
+            copyBtn.innerHTML = `
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+              </svg>
+              Copy
+            `;
+          }, 2000);
+        });
+    });
+    
+    // Matrix-like random character animation for the loading state
+    let matrixInterval;
+    
+    function startMatrixEffect() {
+      if (matrixInterval) clearInterval(matrixInterval);
+      
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789$#@%&*()_+-=[]{}|;:,.<>/?";
+      const elements = document.querySelectorAll('.skeleton');
+      
+      matrixInterval = setInterval(() => {
+        elements.forEach(el => {
+          if (el.classList.contains('skeleton-short')) {
+            el.textContent = Array(10).fill(0).map(() => chars[Math.floor(Math.random() * chars.length)]).join('');
+          } else if (el.classList.contains('skeleton-medium')) {
+            el.textContent = Array(20).fill(0).map(() => chars[Math.floor(Math.random() * chars.length)]).join('');
+          } else {
+            el.textContent = Array(30).fill(0).map(() => chars[Math.floor(Math.random() * chars.length)]).join('');
+          }
+        });
+      }, 100);
+    }
+    
+    function stopMatrixEffect() {
+      if (matrixInterval) {
+        clearInterval(matrixInterval);
+        matrixInterval = null;
+      }
+    }
+    
+    // Show loading state with matrix effect
+    function showLoading() {
+      isLoading = true;
+      questionSection.classList.add('loading');
+      theorySection.classList.add('loading');
+      codeSection.classList.add('loading');
+      startMatrixEffect();
+    }
+    
+    // Hide loading state and stop matrix effect
+    function hideLoading() {
+      isLoading = false;
+      questionSection.classList.remove('loading');
+      theorySection.classList.remove('loading');
+      codeSection.classList.remove('loading');
+      stopMatrixEffect();
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('DOM loaded, ready for solutions');
+      
+      // Initialize highlight.js
+      hljs.configure({
+        languages: ['javascript', 'python'],
+        ignoreUnescapedHTML: true
+      });
+      
+      // Initialize size
+      updateContentSize();
+      
+      // Set default state to click-through
+      isPinned = false;
+      pinBtn.textContent = '📌';
+      pinBtn.title = "Pin overlay (currently click-through enabled)";
+      
+      // Show the click-through indicator
+      const indicator = document.getElementById('click-through-indicator');
+      if (indicator) {
+        indicator.classList.remove('hidden');
+      }
+      
+      // Position the command bar
+      positionCmdBar();
+      
+      ipcRenderer.send('toggle-click-through', true);
+      
+      // Platform-specific command keys
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const cmdKeys = document.querySelectorAll('.cmd-key');
+      if (!isMac) {
+        cmdKeys.forEach(key => {
+          key.innerHTML = key.innerHTML.replace('⌘', 'Ctrl+');
+        });
+      }
+      
+      // Update size periodically to account for dynamic content expansion
+      setInterval(updateContentSize, 500);
+    });
+  </script>
+</body>
+</html> 
