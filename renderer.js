@@ -188,7 +188,7 @@ ipcRenderer.on('CAPTURE_SELECTION', async (event, sourceId) => {
 });
 
 // Take screenshot from video stream
-function takeScreenshot() {
+async function takeScreenshot() {
   updateStatus('Taking screenshot...');
   
   // Set canvas size
@@ -208,12 +208,13 @@ function takeScreenshot() {
   
   updateStatus('Screenshot captured, processing with OCR...');
   
-  // Process screenshot with OCR
-  processScreenshot(screenshot);
+  // Process screenshot with OCR and generate solution
+  await processScreenshot(screenshot);
+  
   isCapturing = false;
 }
 
-// Process screenshot with Tesseract OCR
+// Process screenshot with Tesseract OCR and generate solution
 async function processScreenshot(screenshot) {
   updateStatus('Processing image with OCR...');
   
@@ -235,10 +236,10 @@ async function processScreenshot(screenshot) {
     // Terminate worker after use
     await worker.terminate();
     
-    // Update UI with extracted text
+    // Update UI with extracted text and send to AI for solution generation
     capturedTextElement.textContent = extractedText;
     
-    // Send to AI for solution generation
+    // Send to AI for solution generation if text is detected
     if (extractedText.trim()) {
       updateStatus('OCR successful. Sending to Gemini API...');
       generateSolution(extractedText);
@@ -601,4 +602,4 @@ function handleError(e) {
 window.addEventListener('DOMContentLoaded', () => {
   updateStatus('DOM loaded, initializing application...');
   initialize();
-}); 
+});
