@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>CodeGhost</title>
-  <title>CodeGhost</title>
   <!-- Anti-capture meta tags -->
   <meta name="apple-pay-not-capturable" content="true">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,13 +14,20 @@
   <!-- Additional languages for highlight.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/python.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/java.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/cpp.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/csharp.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/go.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/ruby.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/rust.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/typescript.min.js"></script>
   <!-- Google Fonts for better typography -->
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-color: rgb(0, 0, 0);
+      --bg-color: rgba(0, 0, 0, 0.451);
       --text-color: rgba(255, 255, 255, 0.92);
-      --section-title: rgba(255, 255, 255, 0.9);
+      --section-title: rgba(255, 255, 255, 0.413);
       --header-color: rgba(255, 255, 255, 0.95);
       --cmd-bar-bg: rgba(20, 20, 20, 0.85);
       --cmd-text: rgba(255, 255, 255, 0.8);
@@ -65,6 +71,10 @@
       justify-content: center;
       align-items: center;
       z-index: 9999;
+
+
+
+      
       margin-bottom: 15px;
       box-shadow: 
         0 10px 25px rgba(0, 0, 0, 0.2),
@@ -133,7 +143,6 @@
     .content-panel {
       flex: 1;
       display: flex;
-      flex-direction: column;
       background-color: var(--bg-color);
       border-radius: 12px;
       overflow: hidden;
@@ -142,7 +151,6 @@
         0 4px 10px rgba(0, 0, 0, 0.15);
       border: 1px solid var(--border-color);
       backdrop-filter: blur(10px);
-      padding-left: 20px;
     }
     
     .cmd-bar-container .controls {
@@ -155,36 +163,46 @@
     .header {
       font-size: 14px;
       color: var(--header-color);
-      margin-bottom: 12px;
       padding-bottom: 8px;
       border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-between;
       user-select: none;
       padding: 10px;
-    }
-    
-    .header-controls {
       display: flex;
-      gap: 10px;
+      align-items: center;
     }
     
-    .header-control {
-      cursor: pointer;
-      opacity: 0.7;
-      transition: opacity 0.2s ease;
+    .cursor {
+      display: inline-block;
+      width: 7px;
+      height: 14px;
+      background-color: var(--text-color);
+      animation: blink 1s infinite;
+      vertical-align: middle;
+      margin-left: 2px;
+      margin-bottom: 2px;
     }
     
-    .header-control:hover {
-      opacity: 1;
-    }
-    
-    .solution-container {
+    .theory-panel {
       flex: 1;
-      overflow-y: auto;
       display: flex;
       flex-direction: column;
-      padding: 5px 0;
+      overflow: hidden;
+      padding: 0 15px;
+      border-right: 1px solid var(--border-color);
+    }
+    
+    .code-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 0 15px;
+    }
+    
+    .theory-container, .code-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 0;
     }
     
     .section-header {
@@ -234,7 +252,7 @@
       word-wrap: break-word !important;
     }
     
-    .code-container {
+    .code-wrapper {
       position: relative;
       margin-bottom: 15px;
     }
@@ -259,7 +277,7 @@
       pointer-events: auto;
     }
     
-    .code-container:hover .copy-btn {
+    .code-wrapper:hover .copy-btn {
       opacity: 1;
     }
     
@@ -269,50 +287,6 @@
     
     .copy-btn.success {
       background-color: rgba(70, 70, 70, 0.8);
-    }
-    
-    #click-through-indicator {
-      display: inline-block;
-      font-size: 11px;
-      margin-left: 8px;
-      padding: 2px 6px;
-      background-color: rgba(100, 100, 100, 0.2);
-      border: 1px solid rgba(150, 150, 150, 0.4);
-      border-radius: 10px;
-      color: rgba(255, 255, 255, 0.8);
-      opacity: 0.8;
-    }
-    
-    #click-through-indicator.hidden {
-      display: none;
-    }
-    
-    .new-question-btn, .clear-btn {
-      background-color: var(--cmd-key-bg);
-      color: var(--text-color);
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      padding: 4px 10px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    
-    .new-question-btn:hover, .clear-btn:hover {
-      background-color: rgba(50, 50, 50, 0.9);
-      border-color: rgba(150, 150, 150, 0.6);
-    }
-    
-    /* Additional styles for cursor and loading skeletons */
-    .cursor {
-      display: inline-block;
-      width: 7px;
-      height: 14px;
-      background-color: var(--text-color);
-      animation: blink 1s infinite;
-      vertical-align: middle;
-      margin-left: 2px;
-      margin-bottom: 2px;
     }
     
     @keyframes blink {
@@ -368,6 +342,9 @@
           <div class="cmd">
             <span class="cmd-key">⌘U</span>Ultra
           </div>
+          <div class="cmd">
+            <span class="cmd-key">⌘↵</span>New
+          </div>
         </div>
         <div class="controls">
           <div class="cmd">
@@ -384,67 +361,65 @@
     </div>
     
     <div class="content-panel">
-      <div class="header">
-        <div>
-          <span class="cursor"></span> 
-          <span id="click-through-indicator" title="Click-through mode active: you can type behind this window">[Click-Through]</span>
-        </div>
-        <div class="header-controls">
-          <button class="new-question-btn" id="new-question-btn">New Question</button>
-          <button class="clear-btn" id="clear-btn">Clear</button>
-          <span class="header-control" id="pin-btn" title="Pin overlay (prevents click-through)">📌</span>
-        </div>
-      </div>
-      <div class="solution-container">
-      <!-- Question section -->
-      <div class="section-header">PROBLEM</div>
-      <div class="question" id="question-section">
-        <div id="question-content" class="content question-content">Waiting for code capture...</div>
-        <div class="loading-content">
-          <div class="skeleton skeleton-short"></div>
-          <div class="skeleton skeleton-medium"></div>
-          <div class="skeleton skeleton-long"></div>
-          <div class="skeleton skeleton-medium"></div>
-          <div class="skeleton skeleton-short"></div>
-        </div>
-      </div>
+      <!-- THEORY PANEL (LEFT SIDE) -->
+      <div class="theory-panel">
       
-      <!-- Theory section -->
-      <div class="section-header">APPROACH</div>
-      <div class="theory" id="theory-section">
-        <div id="theory-content" class="content theory-content">Press ⌘G to capture code and generate solution.</div>
-        <div class="loading-content">
-          <div class="skeleton skeleton-medium"></div>
-          <div class="skeleton skeleton-long"></div>
-          <div class="skeleton skeleton-short"></div>
-          <div class="skeleton skeleton-medium"></div>
-          <div class="skeleton skeleton-medium"></div>
-          <div class="skeleton skeleton-long"></div>
-        </div>
-      </div>
-      
-      <!-- Code section -->
-      <div class="section-header">SOLUTION</div>
-      <div class="code-container">
-        <div class="code" id="code-section">
-          <pre><code id="code-text" class="language-python content">Press ⌘G to capture code and generate solution.</code></pre>
-          <div class="loading-content">
-            <div class="skeleton skeleton-short"></div>
-            <div class="skeleton skeleton-long"></div>
-            <div class="skeleton skeleton-medium"></div>
-            <div class="skeleton skeleton-long"></div>
-            <div class="skeleton skeleton-medium"></div>
-            <div class="skeleton skeleton-long"></div>
-            <div class="skeleton skeleton-medium"></div>
+        <div class="theory-container">
+          <!-- Question section -->
+          <div class="section-header">PROBLEM</div>
+          <div class="question" id="question-section">
+            <div id="question-content" class="content question-content">Waiting for code capture...</div>
+            <div class="loading-content">
+              <div class="skeleton skeleton-short"></div>
+              <div class="skeleton skeleton-medium"></div>
+              <div class="skeleton skeleton-long"></div>
+              <div class="skeleton skeleton-medium"></div>
+              <div class="skeleton skeleton-short"></div>
+            </div>
+          </div>
+          
+          <!-- Theory section -->
+          <div class="section-header">APPROACH</div>
+          <div class="theory" id="theory-section">
+            <div class="loading-content">
+              <div class="skeleton skeleton-medium"></div>
+              <div class="skeleton skeleton-long"></div>
+              <div class="skeleton skeleton-short"></div>
+              <div class="skeleton skeleton-medium"></div>
+              <div class="skeleton skeleton-medium"></div>
+              <div class="skeleton skeleton-long"></div>
+            </div>
           </div>
         </div>
-        <button class="copy-btn" id="copy-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
-          </svg>
-          Copy
-        </button>
+      </div>
+      
+      <!-- CODE PANEL (RIGHT SIDE) -->
+      <div class="code-panel">
+       
+        <div class="code-container">
+          <!-- Code section -->
+          <div class="section-header">CODE</div>
+          <div class="code-wrapper">
+            <div class="code" id="code-section">
+              <div class="loading-content">
+                <div class="skeleton skeleton-short"></div>
+                <div class="skeleton skeleton-long"></div>
+                <div class="skeleton skeleton-medium"></div>
+                <div class="skeleton skeleton-long"></div>
+                <div class="skeleton skeleton-medium"></div>
+                <div class="skeleton skeleton-long"></div>
+                <div class="skeleton skeleton-medium"></div>
+              </div>
+            </div>
+            <button class="copy-btn" id="copy-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+              </svg>
+              Copy
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -460,11 +435,11 @@
     const theorySection = document.getElementById('theory-section');
     const codeSection = document.getElementById('code-section');
     const mainContainer = document.getElementById('main-container');
-    const pinBtn = document.getElementById('pin-btn');
     
     // State
-    let isPinned = false;
     let isLoading = false;
+    let stealthMode = false;
+    let ultraMode = false;
     
     // Show loading state
     function showLoading() {
@@ -484,11 +459,27 @@
     
     // Detect language for syntax highlighting
     function detectLanguage(code) {
-      // Simple language detection
+      // Enhanced language detection
       if (code.includes('def ') || code.includes('import ') && code.includes(':')) {
         return 'python';
       } else if (code.includes('function ') || code.includes('const ') || code.includes('let ')) {
         return 'javascript';
+      } else if (code.includes('class ') && code.includes('{') && (code.includes('public ') || code.includes('private '))) {
+        if (code.includes('System.') || code.includes('namespace ')) {
+          return 'csharp';
+        } else {
+          return 'java';
+        }
+      } else if (code.includes('#include') || code.includes('std::')) {
+        return 'cpp';
+      } else if (code.includes('package ') && code.includes('func ')) {
+        return 'go';
+      } else if (code.includes('fn ') && code.includes('mut ')) {
+        return 'rust';
+      } else if (code.includes('def ') && code.includes('end')) {
+        return 'ruby';
+      } else if (code.includes('interface ') || code.includes('type ') && code.includes('export ')) {
+        return 'typescript';
       }
       return 'plaintext';
     }
@@ -567,15 +558,6 @@
       
       // Send the height to the main process
       ipcRenderer.send('content-size-changed', containerHeight);
-      
-      // Reposition the command bar when container size changes
-      positionCmdBar();
-    }
-    
-    // Set cmd bar position on load
-    function positionCmdBar() {
-      // No additional positioning needed as it's fixed now
-      // Keeping the function for compatibility
     }
     
     // Event listeners
@@ -609,68 +591,6 @@
       
       // Update size based on content
       setTimeout(updateContentSize, 100);
-    });
-    
-    // Pin/unpin functionality
-    pinBtn.addEventListener('click', () => {
-      isPinned = !isPinned;
-      pinBtn.textContent = isPinned ? '📍' : '📌';
-      pinBtn.style.color = isPinned ? '#ff5555' : '';
-      pinBtn.title = isPinned ? "Unpin overlay (enable click-through)" : "Pin overlay (currently click-through enabled)";
-      
-      // Show/hide the click-through indicator
-      const indicator = document.getElementById('click-through-indicator');
-      if (indicator) {
-        if (isPinned) {
-          indicator.classList.add('hidden');
-        } else {
-          indicator.classList.remove('hidden');
-        }
-      }
-      
-      // Tell the main process to toggle click-through
-      ipcRenderer.send('toggle-click-through', !isPinned);
-    });
-    
-    // Listen for window resize
-    window.addEventListener('resize', () => {
-      // Reposition cmd bar when window is resized
-      positionCmdBar();
-      // Update size based on content
-      updateContentSize();
-    });
-    
-    // For stealth mode toggling
-    ipcRenderer.on('set-stealth-mode', (event, enabled) => {
-      console.log('Stealth mode:', enabled);
-      document.body.style.opacity = enabled ? 0.7 : 1.0;
-    });
-    
-    // For ultra-stealth mode toggling (makes more transparent but never completely invisible)
-    ipcRenderer.on('set-ultra-stealth-mode', (event, enabled) => {
-      console.log('Ultra-stealth mode:', enabled);
-      document.body.style.opacity = enabled ? 0.8 : 1.0;
-    });
-    
-    // For click-through mode toggling from keyboard shortcut
-    ipcRenderer.on('update-click-through', (event, isClickThrough) => {
-      console.log('Click-through mode updated:', isClickThrough);
-      
-      // Update the pin button state
-      isPinned = !isClickThrough;
-      pinBtn.textContent = isPinned ? '📍' : '📌';
-      pinBtn.style.color = isPinned ? '#ff5555' : '';
-      pinBtn.title = isPinned ? "Unpin overlay (enable click-through)" : "Pin overlay (currently click-through enabled)";
-      
-      // Show/hide the click-through indicator
-      const indicator = document.getElementById('click-through-indicator');
-      if (indicator) {
-        if (isPinned) {
-          indicator.classList.add('hidden');
-        } else {
-          indicator.classList.remove('hidden');
-        }
-      }
     });
     
     // Copy code to clipboard
@@ -716,8 +636,62 @@
         });
     });
     
+    // Add click handlers for stealth and ultra stealth mode buttons
+    document.addEventListener('DOMContentLoaded', () => {
+      // Get command buttons
+      const stealthBtn = document.querySelector('.cmd:nth-child(2)');
+      const ultraBtn = document.querySelector('.cmd:nth-child(3)');
+      const captureBtn = document.querySelector('.cmd:nth-child(1)');
+      const newBtn = document.querySelector('.cmd:nth-child(4)');
+      const toggleBtn = document.querySelector('.controls .cmd:nth-child(1)');
+      
+      // Stealth mode toggle
+      stealthBtn.addEventListener('click', () => {
+        stealthMode = !stealthMode;
+        ipcRenderer.send('toggle-stealth-mode', stealthMode);
+        document.body.style.opacity = stealthMode ? 0.7 : 1.0;
+      });
+      
+      // Ultra stealth mode toggle
+      ultraBtn.addEventListener('click', () => {
+        ultraMode = !ultraMode;
+        ipcRenderer.send('toggle-ultra-stealth-mode', ultraMode);
+        document.body.style.opacity = ultraMode ? 0.4 : 1.0;
+      });
+      
+      // Capture button
+      captureBtn.addEventListener('click', () => {
+        ipcRenderer.send('capture-code');
+      });
+      
+      // New button
+      newBtn.addEventListener('click', () => {
+        ipcRenderer.send('new-question');
+        
+        // Reset the content areas
+        questionContent.textContent = 'Waiting for code capture...';
+        theoryContent.textContent = 'Press ⌘G to capture code and generate solution.';
+        codeText.textContent = 'Press ⌘G to capture code and generate solution.';
+        codeText.className = 'language-plaintext';
+        
+        // Apply highlight.js
+        hljs.highlightElement(codeText);
+        
+        // Update size based on content
+        setTimeout(updateContentSize, 100);
+      });
+      
+      // Toggle click-through mode
+      let clickThrough = true;
+      toggleBtn.addEventListener('click', () => {
+        clickThrough = !clickThrough;
+        ipcRenderer.send('toggle-click-through', clickThrough);
+      });
+    }); // Added missing closing bracket here
+    
     // Matrix-like random character animation for the loading state
     let matrixInterval;
+    
     
     function startMatrixEffect() {
       if (matrixInterval) clearInterval(matrixInterval);
@@ -766,29 +740,16 @@
     document.addEventListener('DOMContentLoaded', () => {
       console.log('DOM loaded, ready for solutions');
       
-      // Initialize highlight.js
+      // Initialize highlight.js with all supported languages
       hljs.configure({
-        languages: ['javascript', 'python'],
+        languages: ['javascript', 'python', 'java', 'cpp', 'csharp', 'go', 'ruby', 'rust', 'typescript'],
         ignoreUnescapedHTML: true
       });
       
       // Initialize size
       updateContentSize();
       
-      // Set default state to click-through
-      isPinned = false;
-      pinBtn.textContent = '📌';
-      pinBtn.title = "Pin overlay (currently click-through enabled)";
-      
-      // Show the click-through indicator
-      const indicator = document.getElementById('click-through-indicator');
-      if (indicator) {
-        indicator.classList.remove('hidden');
-      }
-      
-      // Position the command bar
-      positionCmdBar();
-      
+      // Tell the main process the default click-through state
       ipcRenderer.send('toggle-click-through', true);
       
       // Platform-specific command keys
@@ -800,9 +761,73 @@
         });
       }
       
+      // Add keyboard shortcut for new question (Cmd+Enter)
+      document.addEventListener('keydown', (e) => {
+        // Check for Cmd+Enter (Mac) or Ctrl+Enter (Windows/Linux)
+        if ((isMac && e.metaKey && e.key === 'Enter') || 
+            (!isMac && e.ctrlKey && e.key === 'Enter')) {
+          console.log('New question shortcut triggered');
+          // Request new question from main process
+          ipcRenderer.send('new-question');
+          
+          // Reset the content areas
+          questionContent.textContent = '';
+          theoryContent.textContent = '';
+          codeText.textContent = '';
+          codeText.className = 'language-plaintext';
+          
+          // Apply highlight.js
+          hljs.highlightElement(codeText);
+          
+          // Update size based on content
+          setTimeout(updateContentSize, 100);
+        }
+        
+        // Add stealth mode shortcut (Cmd+S or Ctrl+S)
+        if ((isMac && e.metaKey && e.key === 's') || 
+            (!isMac && e.ctrlKey && e.key === 's')) {
+          e.preventDefault(); // Prevent browser save dialog
+          console.log('Stealth mode shortcut triggered');
+          
+          // Toggle stealth mode
+          stealthMode = !stealthMode;
+          ipcRenderer.send('toggle-stealth-mode', stealthMode);
+          document.body.style.opacity = stealthMode ? 0.7 : 1.0;
+        }
+        
+        // Add ultra stealth mode shortcut (Cmd+U or Ctrl+U)
+        if ((isMac && e.metaKey && e.key === 'u') || 
+            (!isMac && e.ctrlKey && e.key === 'u')) {
+          e.preventDefault(); // Prevent browser behavior
+          console.log('Ultra stealth mode shortcut triggered');
+          
+          // Toggle ultra stealth mode
+          ultraMode = !ultraMode;
+          ipcRenderer.send('toggle-ultra-stealth-mode', ultraMode);
+          document.body.style.opacity = ultraMode ? 0.4 : 1.0;
+        }
+      });
+      
       // Update size periodically to account for dynamic content expansion
       setInterval(updateContentSize, 500);
     });
+    
+    // For stealth mode toggling
+    ipcRenderer.on('set-stealth-mode', (event, enabled) => {
+      console.log('Stealth mode:', enabled);
+      document.body.style.opacity = enabled ? 0.7 : 1.0;
+    });
+    
+    // For ultra-stealth mode toggling (makes more transparent but never completely invisible)
+    ipcRenderer.on('set-ultra-stealth-mode', (event, enabled) => {
+      console.log('Ultra-stealth mode:', enabled);
+      document.body.style.opacity = enabled ? 0.8 : 1.0;
+    });
+    
+    // For click-through mode toggling from keyboard shortcut
+    ipcRenderer.on('update-click-through', (event, isClickThrough) => {
+      console.log('Click-through mode updated:', isClickThrough);
+    });
   </script>
 </body>
-</html> 
+</html>

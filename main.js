@@ -96,7 +96,7 @@ function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
-    show: false, // Don't show by default
+    show: true, // Don't show by default
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
@@ -115,8 +115,8 @@ function createOverlayWindow() {
   
   // Create the overlay window with properties that actually exclude it from screen capture
   overlayWindow = new BrowserWindow({
-    width: 750, // Increased width for a better reading experience
-    height: 500, // Increased height to accommodate question section
+    width: 1050, // Increased width for a better reading experience
+    height: 800, // Increased height to accommodate question section
     x: Math.floor(width * 0.7),
     y: Math.floor(height * 0.2), // Higher up on the screen
     transparent: true,
@@ -406,8 +406,10 @@ app.on('will-quit', () => {
 });
 
 // Screen capture function
+// Replace the captureScreen function in main.js with this implementation
 function captureScreen() {
   return new Promise((resolve, reject) => {
+    // Get the desktop capture sources
     desktopCapturer.getSources({ 
       types: ['screen'],
       thumbnailSize: { width: 1920, height: 1080 }
@@ -415,30 +417,70 @@ function captureScreen() {
       try {
         for (const source of sources) {
           if (source.name === 'Entire Screen' || source.name === 'Screen 1') {
-            // For demo purposes, we're returning a sample captured text
-            // In a real implementation, you would:
-            // 1. Capture the screen image
-            // 2. Use OCR to extract text
-            // 3. Return the text
+            // Create media constraints for the screen capture
+            const constraints = {
+              audio: false,
+              video: {
+                mandatory: {
+                  chromeMediaSource: 'desktop',
+                  chromeMediaSourceId: source.id,
+                  minWidth: 1280,
+                  maxWidth: 4000,
+                  minHeight: 720,
+                  maxHeight: 4000
+                }
+              }
+            };
             
-            // Sample captured text for demonstration
-            const sampleCapturedText = `Given an array of intervals where intervals[i] = [starti, endi], merge all overlapping intervals, and return an array of the non-overlapping intervals that cover all the intervals in the input.
-
-Example 1:
-Input: intervals = [[1,3],[2,6],[8,10],[15,18]]
-Output: [[1,6],[8,10],[15,18]]
-Explanation: Since intervals [1,3] and [2,6] overlap, merge them into [1,6].
-
-Example 2:
-Input: intervals = [[1,4],[4,5]]
-Output: [[1,5]]
-Explanation: Intervals [1,4] and [4,5] are considered overlapping.`;
+            // Request media stream for the screen
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
             
-            resolve(sampleCapturedText);
-            return;
+            // Create a video element to handle the stream
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            
+            // Process the stream once metadata is loaded
+            video.onloadedmetadata = () => {
+              video.play();
+              
+              // Create a canvas to capture the frame
+              const canvas = document.createElement('canvas');
+              const context = canvas.getContext('2d');
+              
+              canvas.width = video.videoWidth;
+              canvas.height = video.videoHeight;
+              
+              // Draw the video frame to the canvas
+              context.drawImage(video, 0, 0, canvas.width, canvas.height);
+              
+              // Stop all tracks in the stream to release the camera
+              stream.getTracks().forEach(track => track.stop());
+              
+              // Get the image data from the canvas
+              const imageData = canvas.toDataURL('image/png');
+              
+              // Use Tesseract.js for OCR
+              const { createWorker } = require('tesseract.js');
+              
+              // Create and initialize Tesseract worker
+              (async () => {
+                const worker = await createWorker();
+                await worker.loadLanguage('eng');
+                await worker.initialize('eng');
+                
+                // Recognize text from the image
+                const { data } = await worker.recognize(imageData);
+                const extractedText = data.text;
+                
+                // Terminate worker to free resources
+                await worker.terminate();
+                
+                // Resolve with the extracted text
+                resolve(extractedText);
+              })();
+            };
           }
         }
-        resolve("No screen source found");
       } catch (error) {
         reject(error);
       }
@@ -449,48 +491,68 @@ Explanation: Intervals [1,4] and [4,5] are considered overlapping.`;
 }
 
 // Function to process the captured text with a language model
+// Replace the processWithGPT function in main.js with this implementation
 async function processWithGPT(capturedText) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     try {
-      // This is where you would call the actual AI API
-      // For demo purposes, we'll return a sample solution
-      setTimeout(() => {
-        // Sample solution for the merge intervals problem
-        const solution = `'''
-This is a classic merge intervals problem that follows these steps:
-
-1. Sort the intervals by their start times
-2. Initialize an empty result list
-3. Iterate through each interval:
-   - If result is empty or current interval doesn't overlap with the last in result, add it
-   - If there's overlap, merge by updating the end time of the last interval in result
-
-Two intervals [a,b] and [c,d] overlap when c ≤ b
-
-Time Complexity: O(n log n) - dominated by the sorting operation
-Space Complexity: O(n) - to store the result
-'''
-
-def merge(intervals):
-    # Sort intervals by start time
-    intervals.sort(key=lambda x: x[0])
-    
-    result = []
-    
-    for interval in intervals:
-        # If result is empty or no overlap with last interval
-        if not result or result[-1][1] < interval[0]:
-            result.append(interval)
-        else:
-            # Merge with the last interval in result
-            result[-1][1] = max(result[-1][1], interval[1])
-    
-    return result
-`;
-        resolve(solution);
-      }, 1500); // Simulate processing delay
+      // Get API key from electron store or environment
+      // For this implementation, we'll use the settings from the renderer process
+      // In a real app, you would store this securely
+      const apiKey = process.env.GEMINI_API_KEY || 
+                    require('electron').app.getPath('userData') + '/settings.json'; // This would need a proper read mechanism
+      
+      // Initialize the Gemini AI
+      const { GoogleGenerativeAI } = require('@google/generative-ai');
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      
+      // Create prompt for the AI
+      const prompt = `You are an AI coding assistant helping a candidate during a coding interview. 
+      Analyze this problem and provide a complete solution with explanation:
+      
+      ${capturedText}
+      
+      Your response should include:
+      1. Clear problem understanding and reasoning (2-3 sentences to explain the core challenge)
+      2. A step-by-step thought process that naturally leads to the solution
+      3. Algorithm approach with time and space complexity analysis
+      4. Complete, working code solution with detailed comments for EVERY important line
+      5. Brief explanation tying everything together
+      
+      IMPORTANT: Add thorough comments throughout the code that explain your reasoning. For example:
+      - Add a comment before each function explaining its purpose
+      - Comment every significant step in the algorithm
+      - Explain any tricky parts or optimizations
+      
+      Format your response in a concise but thorough way that enables the user to understand and explain every aspect of the solution.`;
+      
+      // Call the AI API for solution generation
+      const result = await model.generateContent(prompt);
+      const solution = result.response.text();
+      
+      resolve(solution);
     } catch (error) {
-      reject(error);
+      console.error('Error processing with GPT:', error);
+      
+      // Try to use an alternative AI implementation if the primary fails
+      try {
+        // Fallback to a simpler OpenAI implementation if available
+        const OpenAI = require('openai');
+        const openai = new OpenAI(process.env.OPENAI_API_KEY);
+        
+        const completion = await openai.chat.completions.create({
+          model: "gpt-3.5-turbo",
+          messages: [
+            {role: "system", content: "You are an AI coding assistant helping a candidate during a coding interview."},
+            {role: "user", content: `Analyze this problem and provide a solution: ${capturedText}`}
+          ],
+        });
+        
+        resolve(completion.choices[0].message.content);
+      } catch (fallbackError) {
+        // If both methods fail, reject with the original error
+        reject(error);
+      }
     }
   });
 }
@@ -536,6 +598,56 @@ function captureSelection() {
   }
 }
 
+
+// Add this function to main.js to connect the capture and processing
+async function captureAndProcess() {
+  if (overlayWindow) {
+    // Show processing state in overlay
+    overlayWindow.webContents.send('start-processing');
+    
+    try {
+      // Step 1: Capture the screen and extract text
+      const capturedText = await captureScreen();
+      
+      if (capturedText && capturedText.trim()) {
+        console.log('Captured text successfully');
+        
+        // Send the captured text to display it in the overlay
+        overlayWindow.webContents.send('set-question', capturedText);
+        
+        // Step 2: Process the text with AI
+        try {
+          const solution = await processWithGPT(capturedText);
+          
+          // Step 3: Send the solution to the overlay
+          if (solution) {
+            overlayWindow.webContents.send('update-solution', solution);
+          } else {
+            overlayWindow.webContents.send('update-solution', 
+              "Error: Couldn't generate a solution. No response from AI service.");
+          }
+        } catch (aiError) {
+          handleOCRError(aiError, overlayWindow);
+        }
+      } else {
+        overlayWindow.webContents.send('update-solution', 
+          "Error: No text was captured or recognized. Please try again with clearer text.");
+      }
+    } catch (captureError) {
+      handleOCRError(captureError, overlayWindow);
+    }
+  }
+}
+
+// Update the existing captureSelection function to use this
+function captureSelection() {
+  if (overlayWindow) {
+    overlayWindow.webContents.send('start-processing');
+    captureAndProcess().catch(error => {
+      handleOCRError(error, overlayWindow);
+    });
+  }
+}
 // Listen for OCR results from renderer process
 ipcMain.on('ocr-result', (event, text) => {
   if (overlayWindow) {
@@ -573,3 +685,29 @@ ipcMain.on('toggle-click-through', (event, shouldClickThrough) => {
     }
   }
 }); 
+
+// Add this function to both main.js and renderer.js for better error handling
+function handleOCRError(error, overlayWindow) {
+  console.error('OCR or AI processing error:', error);
+  
+  // Categorize and handle different error types
+  let errorMessage = "An error occurred while processing your request.";
+  
+  if (error.message && error.message.includes('API key')) {
+    errorMessage = "API key error: Please check your API key in settings and try again.";
+  } else if (error.message && error.message.includes('network')) {
+    errorMessage = "Network error: Please check your internet connection and try again.";
+  } else if (error.message && error.message.includes('permission')) {
+    errorMessage = "Permission error: Screen capture requires screen recording permission.";
+  } else if (error.name === 'AbortError') {
+    errorMessage = "Operation timed out. Please try again.";
+  }
+  
+  // Send error to overlay window
+  if (overlayWindow) {
+    overlayWindow.webContents.send('update-solution', 
+      `Error: ${errorMessage}\n\nDetails: ${error.message}`);
+  }
+  
+  return errorMessage;
+}

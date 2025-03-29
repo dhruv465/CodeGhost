@@ -2,6 +2,7 @@ const { ipcRenderer, desktopCapturer } = require('electron');
 const { createWorker, createScheduler } = require('tesseract.js');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const path = require('path');
+const { permission } = require('process');
 
 // DOM Elements
 const captureBtn = document.getElementById('capture-btn');
@@ -263,7 +264,7 @@ async function generateSolution(problemText) {
     updateStatus('Generating solution...');
     
     const prompt = `You are an AI coding assistant helping a candidate during a coding interview. 
-    Analyze this coding problem and provide a complete solution with explanation:
+    Analyze this problem and provide a complete solution with explanation:
     
     ${problemText}
     
@@ -493,76 +494,86 @@ async function captureSelectedArea(sourceId, left, top, width, height) {
 }
 
 // Process the captured image
+// Replace the processImage function in renderer.js with this implementation
 async function processImage(imageData) {
   updateStatus('Processing captured image...');
   
-  // For now, let's just show the image and simulate OCR
-  // In a real implementation, you'd perform OCR here or send to an API
-  if (capturedTextElement) {
-    capturedTextElement.innerHTML = 'Processing captured code...';
-  }
-  
-  // Simulate OCR by delaying a bit
-  setTimeout(() => {
-    // For demo, let's just generate a sample solution
-    const sampleExtractedCode = `function bubbleSort(arr) {
-  let swapped;
-  do {
-    swapped = false;
-    for (let i = 0; i < arr.length - 1; i++) {
-      if (arr[i] > arr[i + 1]) {
-        let temp = arr[i];
-        arr[i] = arr[i + 1];
-        arr[i + 1] = temp;
-        swapped = true;
-      }
-    }
-  } while (swapped);
-  return arr;
-}`;
+  try {
+    // 1. Process the image with Tesseract OCR
+    updateStatus('Performing OCR on captured area...');
     
+    // Create a new worker for this processing
+    const worker = await createWorker({
+      logger: progress => {
+        updateStatus(`OCR progress: ${Math.floor((progress.progress || 0) * 100)}%`);
+      }
+    });
+    
+    // Initialize OCR engine
+    await worker.loadLanguage('eng');
+    await worker.initialize('eng');
+    
+    // Perform OCR on the image
+    const { data } = await worker.recognize(imageData);
+    const extractedText = data.text;
+    
+    // Terminate worker after use to free resources
+    await worker.terminate();
+    
+    // Update UI with the extracted text
     if (capturedTextElement) {
-      capturedTextElement.innerText = sampleExtractedCode;
+      capturedTextElement.innerText = extractedText;
     }
     
-    // Send the text to the main process to generate a solution
-    const sampleSolution = `// Bubble Sort Implementation
-function bubbleSort(arr) {
-  // Make a copy to avoid modifying original array
-  const result = [...arr];
-  
-  // Track whether any swaps were made in each pass
-  let swapped;
-  
-  // Continue until no swaps are needed
-  do {
-    swapped = false;
-    
-    // Iterate through the array
-    for (let i = 0; i < result.length - 1; i++) {
-      // Compare adjacent elements
-      if (result[i] > result[i + 1]) {
-        // Swap elements using destructuring
-        [result[i], result[i+1]] = [result[i+1], result[i]];
-        swapped = true;
-      }
+    // If no text was detected, notify the user
+    if (!extractedText.trim()) {
+      updateStatus('No text detected in the captured area. Please try again.');
+      ipcRenderer.send('ai-result', "Error: No text was detected in the captured area. Please try selecting a different area with clearer text.");
+      return;
     }
-  } while (swapped);
-  
-  return result;
-}
-
-// Time Complexity: O(n²) in worst case
-// Space Complexity: O(n) due to the array copy`;
     
-    ipcRenderer.send('ai-result', sampleSolution);
-    updateStatus('Solution generated and sent to overlay!');
+    // 2. Send the extracted code to Gemini for solution generation
+    updateStatus('Text extracted successfully. Generating solution...');
     
-    // In a real implementation, you would:
-    // 1. Send image to OCR service to extract the code
-    // 2. Send the extracted code to an AI service for solution
-    // 3. Send the AI solution to the overlay via ipcRenderer.send('ai-result', solution)
-  }, 1500);
+    if (!generationModel) {
+      updateStatus('Error: AI model not initialized. Please check your API key.');
+      ipcRenderer.send('ai-result', "Error: AI service not initialized. Please check your API key in settings.");
+      return;
+    }
+    
+    // Create prompt for the AI
+    const prompt = `You are an AI coding assistant helping a candidate during a coding interview. 
+    Analyze this problem and provide a complete solution with explanation:
+    
+    ${extractedText}
+    
+    Your response should include:
+    1. Clear problem understanding and reasoning (2-3 sentences to explain the core challenge)
+    2. A step-by-step thought process that naturally leads to the solution
+    3. Algorithm approach with time and space complexity analysis
+    4. Complete, working code solution with detailed comments for EVERY important line
+    5. Brief explanation tying everything together
+    
+    IMPORTANT: Add thorough comments throughout the code that explain your reasoning. For example:
+    - Add a comment before each function explaining its purpose
+    - Comment every significant step in the algorithm
+    - Explain any tricky parts or optimizations
+    
+    Format your response in a concise but thorough way that enables the user to understand and explain every aspect of the solution.`;
+    
+    // Generate solution using Gemini API
+    const result = await generationModel.generateContent(prompt);
+    const solution = result.response.text();
+    
+    // 3. Send the solution to the overlay window
+    ipcRenderer.send('ai-result', solution);
+    
+    updateStatus('Solution generated and sent to overlay window!');
+  } catch (error) {
+    console.error('Error processing captured image:', error);
+    updateStatus('Error: ' + error.message);
+    ipcRenderer.send('ai-result', `Error processing: ${error.message}`);
+  }
 }
 
 function handleStream(stream) {
@@ -603,3 +614,30 @@ window.addEventListener('DOMContentLoaded', () => {
   updateStatus('DOM loaded, initializing application...');
   initialize();
 });
+
+
+function handleOCRError(error, overlayWindow) {
+  console.error('OCR or AI error:', error);
+}
+
+let errorMessage = "An error occurred while processig your request";
+
+if (error.message && error.message.includes("API key")) {
+  errorMessage = "Invalid API key. Please check your settings.";
+} else if (error.message && error.message.includes("network")) {
+  errorMessage = "Network error. Please check your internet connection";
+
+} else if (error.message && error.message.includes(permission) ) {
+  errorMessage = "Permission denied. Please check your system settings";
+} else if (error.message && error.message.includes("timeout")) {
+  errorMessage = "Request timed out. Please try again later";
+} else if (error.name === "AbortError") {
+  errorMessage = "Request aborted. Please try again";
+}
+
+if (overlayWindow) {
+  overlayWindow.webContents.send('update-solution',
+    `Error: ${errorMessage} \n \n Details: ${error.stack || error.message  }`
+  )
+  return errorMessage;
+}
