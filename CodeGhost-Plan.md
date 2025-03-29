@@ -2,32 +2,27 @@
 
 ## Project Overview
 
-The project will be developed as desktop application software using Electron and JavaScript (explicitly avoiding TypeScript). The UI should be minimalist and directly implemented using local HTML/CSS/JavaScript files, explicitly avoiding React or other frontend frameworks, to ensure simplicity and a fully desktop-integrated experience.
+The application must strictly avoid using TypeScript or any JavaScript frameworks like React, Angular, or Vue. The app should be completely built using only HTML, Tailwind CSS,  JavaScript, and Electron, ensuring simplicity and maximum control over the desktop-integrated experience.
 
 ## Workflow Architecture
 
 ```
-User triggers screenshot capture → Electron desktopCapturer API captures screen → Screenshot processed by Tesseract.js (OCR) → Text extracted and sent to Gemini  API →  generates solutions → Solutions displayed via Electron transparent overlay window (invisible during screen sharing)
+User triggers screenshot capture → Electron desktopCapturer API captures screen → Screenshot processed by OCR (Tesseract.js) → Text extracted and sent to Gemini API → Gemini generates solutions → Solutions displayed via Electron transparent overlay window (invisible during screen sharing)
 
-Optional: Real-time interviewer audio → Speech-to-text via Whisper/Google API → Transcribed text sent to  → Solutions displayed in overlay
+Optional: Real-time interviewer audio → Speech-to-text via Whisper/Google API → Transcribed text sent to Gemini API → Solutions displayed in overlay
 ```
-
-The goal is to create an Electron desktop application named **CodeGhost**, which aids candidates during coding interviews by capturing coding problems, using AI to solve them, and displaying solutions in a stealth overlay, invisible to screen-sharing software.
 
 ## Tech Stack
 
 | Component                | Technology                                |
 | ------------------------ | ----------------------------------------- |
-| Frontend/Desktop App     | Electron (JavaScript)                     |
+| Frontend/Desktop App     | Electron, HTML, Plain JavaScript          |
+| Styling                  | Tailwind CSS                              |
 | OCR                      | Tesseract.js                              |
-| AI Integration           | Gemini API                         |
-| Audio Transcription      |  (Gemini) or Google Speech-to-Text |
+| AI Integration           | Gemini API                                |
+| Audio Transcription      | Whisper (OpenAI) or Google Speech-to-Text |
 | Packaging & Distribution | Electron-builder                          |
-
-- **Frontend/Desktop App:** Electron (JavaScript)
-- **OCR:** Tesseract.js
-- **AI Integration:** Gemini API 
-- **Audio Transcription (Optional):** Whisper (Gemini) or Google Cloud Speech-to-Text
+| Code Highlighting        | Highlight.js                              |
 
 ## Step-by-Step Implementation Plan
 
@@ -37,144 +32,100 @@ The goal is to create an Electron desktop application named **CodeGhost**, which
 
 ```bash
 npm init -y
-npm install electron --save-dev
-```
-
-- Create basic Electron structure:
-
-**main.js**
-
-```javascript
-const { app, BrowserWindow } = require('electron');
-
-function createWindow() {
-  const win = new BrowserWindow({
-    width: 800,
-    height: 600,
-    transparent: true,
-    frame: false,
-    alwaysOnTop: true,
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
-    }
-  });
-
-  win.loadFile('index.html');
-  win.setIgnoreMouseEvents(true);
-}
-
-app.whenReady().then(createWindow);
-```
-
-**index.html**
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>CodeGhost Overlay</title>
-  <style>
-    body { background-color: rgba(0,0,0,0); color: white; }
-  </style>
-</head>
-<body>
-  <div id="solution"></div>
-  <script src="renderer.js"></script>
-</body>
-</html>
+npm install electron tailwindcss postcss autoprefixer vite --save-dev
 ```
 
 - Configure Electron settings for cross-platform compatibility (Windows/macOS/Linux)
 
 ### 2. Create Invisible Overlay
 
-- Configure Electron window properties as shown above
+- Configure Electron window properties (transparent, frameless, always-on-top)
 - Test invisibility with Zoom, Google Meet, and other screen-sharing tools
 
 ### 3. Screen Capture Functionality
 
-- Implement screen capturing:
-  - Utilize Electron's `desktopCapturer` API
-  - Save screenshot locally or keep in memory for OCR processing
+- Implement screen capture using Electron desktopCapturer API
 
 ### 4. Integrate OCR Module
 
-- Install and configure Tesseract.js
-- Develop functionality to process screenshots
-- Extract clear text from images
+- Set up and integrate Tesseract.js for efficient text extraction
 
 ### 5. AI Solution Generation
 
-- Set up Gemini API key and endpoint integration
-- Send OCR-extracted text as prompts to 
-- Retrieve and format AI responses (code solutions, explanations, complexity analysis)
+- Configure Gemini API integration
+- Prompt engineering to get optimized responses
 
 ### 6. Displaying AI-generated Solutions
 
-- Render solutions clearly within Electron overlay window
-- Allow user control with keyboard shortcuts for convenience:
-  - Capture screenshot
-  - Submit to AI
-  - Hide/show overlay instantly
+- Implement clear UI structure:
+  - Left panel for explanatory text
+  - Right panel for highlighted code snippets (using Highlight.js)
+- Keyboard shortcuts for interaction
 
-### 7. Optional: Real-Time Audio Transcription
+### 7. UI Layout and Command Bar Improvements
 
-- Integrate microphone/audio capture with Electron/Node.js
-- Implement speech-to-text transcription
-- Convert interviewer audio questions to text
-- Automate AI solution retrieval from transcribed audio
+- On app launch, display only the command bar showing hotkey for screenshot
+- Upon screenshot capture, automatically display overlay with skeleton loading for answer generation
+- Show hotkeys for additional interactions (panel movement, reset solution)
 
-### 8. Stealth Testing and Optimizations
+### 8. Interaction and Hotkey Commands
 
-- Verify overlay invisibility with popular screen-sharing platforms (Zoom, Google Meet, Microsoft Teams, Slack, Discord).
-- Utilize built-in screen recording software (QuickTime, OBS Studio, Windows Game Bar) to test invisibility thoroughly.
-- Conduct controlled tests with external participants to confirm the overlay remains undetectable during live interactions.
-- Optimize Electron window properties and transparency settings based on test outcomes.
+- Capture screenshot: `Ctrl+Shift+S` or `Cmd+Shift+S`
+- Reset and new chat: `Cmd+Enter` or `Ctrl+Enter`
+- Document and display hotkeys clearly on the command bar
 
-### 9. Packaging & Distribution
+### 9. Optional: Real-Time Audio Transcription
 
-- Use Electron-builder for packaging due to its simplicity, wide community support, and robust documentation, making it ideal for rapid development and reliable builds.
-- Create installers for Windows, macOS, and Linux
-- Use Electron-builder or Electron-forge for packaging
-- Create installers for Windows, macOS, and Linux
+- Integrate microphone/audio capture and speech-to-text transcription
+- Automate solution generation from audio
 
-## Timeline and Milestones
+### 10. Stealth Testing and Optimizations
 
-- **Week 1:** Electron app setup and overlay implementation
-  - **Risk:** Compatibility issues across OS. **Mitigation:** Allocate extra time for cross-platform testing.
-- **Week 2:** Screenshot capture and OCR integration
-  - **Risk:** OCR accuracy issues. **Mitigation:** Experiment with image processing techniques to improve accuracy.
-- **Week 3:** AI Integration and solution rendering
-  - **Risk:** API rate limits or latency. **Mitigation:** Implement caching and batch requests strategically.
-- **Week 4:** Optional audio transcription integration
-  - **Risk:** Speech-to-text transcription inaccuracies. **Mitigation:** Evaluate and select the most reliable transcription API.
-- **Week 5:** Testing, optimization, and stealth verification
-  - **Risk:** Detection by screen-sharing platforms. **Mitigation:** Continuously iterate stealth techniques based on thorough testing.
-- **Week 6:** Packaging, documentation, and deployment
-  - **Risk:** Packaging and installer issues. **Mitigation:** Early-stage test builds and extensive user documentation.
+- Verify overlay invisibility rigorously
+- Optimize window properties based on test feedback
 
-## Resources Needed
+### 11. Packaging & Distribution
 
-- Electron official documentation
-- Gemini API documentation
-- Tesseract.js library
-- Whisper or Google Speech-to-Text API (optional)
+- Use Electron-builder for reliable, simple, cross-platform packaging
+- Create installers for all supported platforms
+
+## Testing Process
+
+### Step 1: Electron App Initialization
+
+- Verify window properties
+
+### Step 2: Global Shortcuts Testing
+
+- Validate screenshot and reset shortcuts functionality
+
+### Step 3: OCR Functionality
+
+- Test Tesseract.js for accuracy and speed
+
+### Step 4: AI Solution Generation
+
+- Ensure correct integration with Gemini API
+
+### Step 5: Overlay Stealth Verification
+
+- Test with screen-sharing and recording tools
+
+### Step 6: Interaction & Usability
+
+- Validate UI responsiveness and shortcuts interaction
+
+### Step 7: Comprehensive Error Handling
+
+- Simulate errors to test graceful error handling
 
 ## Next Steps
 
-- **UI Development Prompt:**
-
-  - Design a minimalist, transparent, and stealth-friendly UI for the Electron app named **CodeGhost**. Ensure the UI prominently displays the AI-generated coding solutions and explanations. Utilize HTML/CSS/JavaScript (Electron compatible), keeping in mind the invisibility requirement for seamless integration during coding interviews. Optimize readability, simplicity, and responsiveness.
-
 - Set up Electron development environment
+- Secure API accesses (Gemini API)
+- Begin implementation phase 1 (Electron setup, screen capture integration)
 
-- Secure Gemini API access
+## UI Development Prompt:
 
-- Begin implementation phase 1 (Electron setup and overlay creation)
-
----
-
-This plan outlines a clear, step-by-step approach to build a fully functional, invisible AI-powered coding interview assistant using Electron and JavaScript/TypeScript.
+- Design a minimalist, transparent, stealth-friendly UI for CodeGhost using only HTML, Tailwind CSS, and plain JavaScript. Prominently display AI-generated solutions (left side: explanations, right side: code snippets with Highlight.js). Implement skeleton loaders, structured overlay panel, and dynamic command bar clearly displaying hotkey instructions.
 
