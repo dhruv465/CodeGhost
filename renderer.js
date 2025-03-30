@@ -8,7 +8,7 @@ const { ipcRenderer } = require('electron'); // Only require ipcRenderer
 // const { createWorker } = require('tesseract.js');
 // const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-// Remove references to elements that might not exist in overlay.html
+// Remove references to elements that might not exist in index.html
 // const captureBtn = document.getElementById('capture-btn');
 // const toggleOverlayBtn = document.getElementById('toggle-overlay-btn');
 // const statusElement = document.getElementById('status');
@@ -19,7 +19,7 @@ const { ipcRenderer } = require('electron'); // Only require ipcRenderer
 // let canvasElement = document.getElementById('canvas');
 // let canvasContext = canvasElement ? canvasElement.getContext('2d') : null;
 
-// State variables managed by overlay.html's script or received from main
+// State variables managed by index.html's script or received from main
 // let apiKey = ''; // Received via IPC/preload
 // let isCapturing = false; // State managed by main process
 // let selectedSourceId = null; // State managed by main process
@@ -28,10 +28,10 @@ const { ipcRenderer } = require('electron'); // Only require ipcRenderer
 // let isStealthMode = false; // Synced via IPC
 
 // --- Simplified Renderer Logic ---
-// The renderer (overlay.html) is now primarily responsible for displaying
+// The renderer (index.html) is now primarily responsible for displaying
 // information received from the main process and sending user interaction events.
 
-// Elements from overlay.html (ensure these IDs exist in your overlay.html)
+// Elements from index.html (ensure these IDs exist in your index.html)
 const questionContent = document.getElementById('question-content');
 const theoryContent = document.getElementById('theory-content');
 const codeText = document.getElementById('code-text'); // This should be the <pre><code> block
@@ -43,7 +43,7 @@ const contentPanelElement = document.querySelector('.content-panel');
 const copyBtn = document.getElementById('copy-btn');
 
 
-// State for overlay.html UI
+// State for index.html UI
 let isLoading = false;
 let currentStealthMode = false;
 let currentUltraStealthMode = false;

@@ -160,7 +160,7 @@ function createOverlayWindow() {
       }
   }
 
-  overlayWindow.loadFile(path.join(__dirname, 'overlay.html'));
+  overlayWindow.loadFile(path.join(__dirname, 'index.html'));
   overlayWindow.setIgnoreMouseEvents(true, {
       forward: true
   });

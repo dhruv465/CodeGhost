@@ -1,181 +1,712 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CodeGhost</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <meta name="apple-pay-not-capturable" content="true">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="screen-capture" content="deny">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/java.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/cpp.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/csharp.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/go.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/ruby.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/rust.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/typescript.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet">
   <style>
     :root {
-      --bg-primary: #121212;
-      --bg-secondary: #1E1E1E;
-      --text-primary: #FFFFFF;
-      --text-secondary: #B0B0B0;
-      --accent-color: #4CAF50;
-      --hover-color: #45a049;
+      --bg-color: rgba(0, 0, 0, 0.451);
+      --text-color: rgba(255, 255, 255, 0.92);
+      --section-title: rgba(255, 255, 255, 0.413);
+      --header-color: rgba(255, 255, 255, 0.95);
+      --cmd-bar-bg: rgba(20, 20, 20, 0.85);
+      --cmd-text: rgba(255, 255, 255, 0.8);
+      --cmd-key-bg: rgba(40, 40, 40, 0.9);
+      --cmd-key-border: rgba(100, 100, 100, 0.5);
+      --skeleton-base: rgba(50, 50, 50, 0.2);
+      --skeleton-highlight: rgba(100, 100, 100, 0.3);
+      --border-color: rgba(100, 100, 100, 0.3);
+      --accent-color: rgba(150, 150, 150, 0.8);
     }
 
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
     }
 
+    html,
     body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--bg-primary);
-      color: var(--text-primary);
-      line-height: 1.6;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Inter', 'Menlo', 'Monaco', 'Courier New', monospace;
+      background-color: transparent;
+      color: var(--text-color);
     }
 
     .container {
-      background: var(--bg-secondary);
-      border-radius: 12px;
-      max-width: 800px;
       width: 100%;
-      padding: 40px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      text-align: center;
+      height: 100%;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      background-color: transparent;
     }
 
-    .logo {
-      width: 120px;
-      height: 120px;
-      margin: 0 auto 20px;
-      background: url('CodeGhost.png') no-repeat center;
-      background-size: contain;
-    }
-
-    h1 {
-      color: var(--accent-color);
-      font-size: 2.5rem;
+    .cmd-bar-container {
+      width: calc(100% - 30px);
+      background-color: var(--cmd-bar-bg);
+      border-radius: 12px;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
       margin-bottom: 15px;
-    }
-
-    .tagline {
-      color: var(--text-secondary);
-      font-size: 1.1rem;
-      margin-bottom: 30px;
-    }
-
-    .features {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin: 30px 0;
-    }
-
-    .feature {
-      background: var(--bg-primary);
-      padding: 20px;
-      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2), 0 4px 10px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      transform: translateY(0);
       transition: transform 0.3s ease;
     }
 
-    .feature:hover {
-      transform: scale(1.05);
+    .cmd-bar-container:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25), 0 6px 15px rgba(0, 0, 0, 0.2);
     }
 
-    .feature-icon {
-      font-size: 2rem;
-      color: var(--accent-color);
-      margin-bottom: 10px;
-    }
-
-    .feature-title {
-      font-weight: 600;
-      margin-bottom: 10px;
-    }
-
-    .feature-description {
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-    }
-
-    .cta-button {
-      display: inline-block;
-      background: var(--accent-color);
-      color: var(--text-primary);
-      padding: 12px 24px;
-      text-decoration: none;
-      border-radius: 6px;
-      font-weight: 600;
-      transition: background 0.3s ease;
-    }
-
-    .cta-button:hover {
-      background: var(--hover-color);
-    }
-
-    .shortcuts {
-      background: var(--bg-primary);
-      border-radius: 8px;
-      padding: 20px;
-      margin-top: 30px;
-    }
-
-    .shortcut-item {
+    .cmd-bar {
       display: flex;
+      gap: 20px;
+      color: var(--cmd-text);
+      font-size: 12px;
+      align-items: center;
+      user-select: none;
+      width: 100%;
       justify-content: space-between;
-      margin-bottom: 10px;
-      color: var(--text-secondary);
     }
 
-    .shortcut-key {
-      background: var(--accent-color);
-      color: var(--text-primary);
-      padding: 4px 8px;
+    .cmd-group {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .cmd {
+      display: flex;
+      align-items: center;
+      opacity: 0.7;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .cmd:hover {
+      opacity: 1;
+      color: white;
+    }
+
+    .cmd-key {
+      background-color: var(--cmd-key-bg);
+      border-radius: 6px;
+      padding: 3px 7px;
+      margin-right: 6px;
+      font-size: 10px;
+      color: var(--cmd-text);
+      border: 1px solid var(--cmd-key-border);
+      min-width: 20px;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .cmd:hover .cmd-key {
+      background-color: rgba(60, 60, 60, 0.9);
+      color: white;
+    }
+
+    .content-panel {
+      flex: 1;
+      display: flex;
+      background-color: var(--bg-color);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2), 0 4px 10px rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--border-color);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      max-height: 0;
+      opacity: 0;
+    }
+
+    .content-panel.expanded {
+      max-height: 800px;
+      opacity: 1;
+    }
+
+    .content-panel.collapsed {
+      display: none;
+    }
+
+    /* Initially hide the content panel until a capture is made */
+    .content-panel.collapsed {
+      display: none;
+    }
+
+    .cmd-bar-container .controls {
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      align-items: center;
+    }
+
+    .header {
+      font-size: 14px;
+      color: var(--header-color);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-color);
+      user-select: none;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 7px;
+      height: 14px;
+      background-color: var(--text-color);
+      animation: blink 1s infinite;
+      vertical-align: middle;
+      margin-left: 2px;
+      margin-bottom: 2px;
+    }
+
+    .theory-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 0 15px;
+      border-right: 1px solid var(--border-color);
+    }
+
+    .code-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 0 15px;
+    }
+
+    .theory-container,
+    .code-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 0;
+    }
+
+    .section-header {
+      font-size: 12px;
+      color: var(--section-title);
+      margin-top: 15px;
+      margin-bottom: 8px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 5px rgba(150, 150, 150, 0.3);
+      border-left: 3px solid var(--border-color);
+      padding-left: 7px;
+    }
+
+    .question,
+    .theory,
+    .code {
+      padding: 0;
+      margin-bottom: 15px;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      overflow-x: hidden;
+    }
+
+    .question-content,
+    .theory-content {
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-x: hidden;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .code pre {
+      margin: 0;
+      padding: 0;
+      background: transparent !important;
+      font-family: 'Fira Code', 'Menlo', 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-x: hidden;
+    }
+
+    .hljs {
+      background: transparent !important;
+      padding: 0 !important;
+      overflow-x: hidden !important;
+      white-space: pre-wrap !important;
+      word-wrap: break-word !important;
+    }
+
+    .code-wrapper {
+      position: relative;
+      margin-bottom: 15px;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background-color: rgba(30, 30, 30, 0.7);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      border-radius: 3px;
+      padding: 3px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      pointer-events: auto;
+    }
+
+    .code-wrapper:hover .copy-btn {
+      opacity: 1;
+    }
+
+    .copy-btn:hover {
+      background-color: rgba(50, 50, 50, 0.9);
+    }
+
+    .copy-btn.success {
+      background-color: rgba(70, 70, 70, 0.8);
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0;
+      }
+    }
+
+    @keyframes skeleton-loading {
+      0% {
+        background-position: -200px 0;
+      }
+
+      100% {
+        background-position: calc(200px + 100%) 0;
+      }
+    }
+
+    .skeleton {
+      display: none;
+      animation: skeleton-loading 1.5s infinite linear;
+      background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+      background-size: 200px 100%;
       border-radius: 4px;
-      font-family: monospace;
+      height: 14px;
+      margin-bottom: 8px;
+      width: var(--width, 100%);
+    }
+
+    .loading .skeleton {
+      display: block;
+    }
+
+    .loading-content {
+      display: none;
+    }
+
+    .loading .loading-content {
+      display: block;
+    }
+
+    .loading .content {
+      display: none;
     }
   </style>
-</head>
-<body>
-  <div class="container">
-    <div class="logo"></div>
-    <h1>CodeGhost</h1>
-    <p class="tagline">Your invisible AI programming companion</p>
 
-    <div class="features">
-      <div class="feature">
-        <div class="feature-icon">💻</div>
-        <div class="feature-title">Instant Solutions</div>
-        <div class="feature-description">Capture and solve coding problems instantly</div>
-      </div>
-      <div class="feature">
-        <div class="feature-icon">👻</div>
-        <div class="feature-title">Stealth Mode</div>
-        <div class="feature-description">Remain invisible during screen sharing</div>
-      </div>
-      <div class="feature">
-        <div class="feature-icon">🎨</div>
-        <div class="feature-title">Customizable UI</div>
-        <div class="feature-description">Adjust overlay transparency and position</div>
+</head>
+
+<body>
+  <div class="container" id="main-container">
+    <div class="cmd-bar-container">
+      <div class="cmd-bar">
+        <div class="cmd-group">
+          <div class="cmd command" data-command="capture">
+            <span class="cmd-key">⌘G</span>Capture
+          </div>
+          <div class="cmd command" data-command="stealthMode">
+            <span class="cmd-key">⌘S</span>Stealth
+          </div>
+          <div class="cmd command" data-command="ultraStealthMode">
+            <span class="cmd-key">⌘U</span>Ultra
+          </div>
+          <div class="cmd command" data-command="newQuestion">
+            <span class="cmd-key">⌘↵</span>New
+          </div>
+        </div>
+        <div class="controls">
+          <div class="cmd command" data-command="toggleOverlay">
+            <span class="cmd-key">⌘T</span>Toggle
+          </div>
+          <div class="cmd command" data-command="moveControls">
+            <span class="cmd-key">↑↓←→</span>Move
+          </div>
+          <div class="cmd command" data-command="moveControls">
+            <span class="cmd-key">1-4</span>Pos
+          </div>
+        </div>
       </div>
     </div>
 
-    <a href="#" class="cta-button">Start CodeGhost</a>
+    <div class="content-panel collapsed">
+      <div class="theory-panel">
+        <div class="theory-container">
+          <div class="section-header">PROBLEM</div>
+          <div class="question" id="question-section">
+            <div id="question-content" class="content question-content">Waiting for code capture...</div>
+            <div class="loading-content">
+              <div class="skeleton skeleton-short"></div>
+              <div class="skeleton skeleton-medium"></div>
+              <div class="skeleton skeleton-long"></div>
+              <div class="skeleton skeleton-medium"></div>
+              <div class="skeleton skeleton-short"></div>
+            </div>
+          </div>
+          <div class="section-header">APPROACH</div>
+          <div class="theory" id="theory-section">
+            <div id="theory-content" class="content theory-content"></div>
+            <div class="loading-content">
+              <div class="skeleton skeleton-medium"></div>
+              <div class="skeleton skeleton-long"></div>
+              <div class="skeleton skeleton-short"></div>
+              <div class="skeleton skeleton-medium"></div>
+              <div class="skeleton skeleton-medium"></div>
+              <div class="skeleton skeleton-long"></div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <div class="shortcuts">
-      <div class="shortcut-item">
-        <span>Capture Problem</span>
-        <span class="shortcut-key">⌘G</span>
-      </div>
-      <div class="shortcut-item">
-        <span>Toggle Click-Through</span>
-        <span class="shortcut-key">⌘T</span>
-      </div>
-      <div class="shortcut-item">
-        <span>Stealth Mode</span>
-        <span class="shortcut-key">⌘S</span>
+      <div class="code-panel">
+        <div class="code-container">
+          <div class="section-header">CODE</div>
+          <div class="code-wrapper">
+            <div class="code" id="code-text">
+              <div class="loading-content">
+                <div class="skeleton skeleton-short"></div>
+                <div class="skeleton skeleton-long"></div>
+                <div class="skeleton skeleton-medium"></div>
+                <div class="skeleton skeleton-long"></div>
+                <div class="skeleton skeleton-medium"></div>
+                <div class="skeleton skeleton-long"></div>
+                <div class="skeleton skeleton-medium"></div>
+              </div>
+            </div>
+            <button class="copy-btn" id="copy-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+              </svg>
+              Copy
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <script src="renderer.js"></script>
+
+  <script>
+    const {
+      ipcRenderer
+    } = require('electron');
+
+    // Elements
+    const questionContent = document.getElementById('question-content');
+    const theoryContent = document.getElementById('theory-content');
+    const codeText = document.getElementById('code-text');
+    const questionSection = document.getElementById('question-section');
+    const theorySection = document.getElementById('theory-section');
+    const mainContainer = document.getElementById('main-container');
+    const contentPanelElement = document.querySelector('.content-panel');
+
+
+    // State
+    let isLoading = false;
+    let stealthMode = false;
+    let ultraMode = false;
+
+    // Show loading state
+    function showLoading() {
+      isLoading = true;
+      questionSection.classList.add('loading');
+      theorySection.classList.add('loading');
+      codeText.classList.add('loading');
+    }
+
+    // Hide loading state
+    function hideLoading() {
+      isLoading = false;
+      questionSection.classList.remove('loading');
+      theorySection.classList.remove('loading');
+      codeText.classList.remove('loading');
+    }
+
+    // Detect language for syntax highlighting
+    function detectLanguage(code) {
+      if (code.includes('def ') || (code.includes('import ') && code.includes(':'))) {
+        return 'python';
+      } else if (code.includes('function ') || code.includes('const ') || code.includes('let ')) {
+        return 'javascript';
+      } else if (code.includes('class ') && code.includes('{') && (code.includes('public ') || code.includes('private '))) {
+        if (code.includes('System.') || code.includes('namespace ')) {
+          return 'csharp';
+        } else {
+          return 'java';
+        }
+      } else if (code.includes('#include') || code.includes('std::')) {
+        return 'cpp';
+      } else if (code.includes('package ') && code.includes('func ')) {
+        return 'go';
+      } else if (code.includes('fn ') && code.includes('mut ')) {
+        return 'rust';
+      } else if (code.includes('def ') && code.includes('end')) {
+        return 'ruby';
+      } else if (code.includes('interface ') || (code.includes('type ') && code.includes('export '))) {
+        return 'typescript';
+      }
+      return 'plaintext';
+    }
+
+    // Parse solution into theory and code
+    function parseSolution(solution) {
+      if (!solution) return {
+        theory: '',
+        code: '',
+        language: 'plaintext'
+      };
+      if (solution.trim().startsWith("'''")) {
+        const tripleQuoteEnd = solution.indexOf("'''", 3);
+        if (tripleQuoteEnd > 0) {
+          const theory = solution.substring(3, tripleQuoteEnd).trim();
+          const code = solution.substring(tripleQuoteEnd + 3).trim();
+          return {
+            theory,
+            code,
+            language: 'python'
+          };
+        }
+      }
+      const theoryMatch = solution.match(/\/\*\s*([\s\S]*?)\s*\*\//);
+      if (theoryMatch) {
+        const theory = theoryMatch[1].trim();
+        const code = solution.substring(theoryMatch[0].length).trim();
+        return {
+          theory,
+          code,
+          language: 'javascript'
+        };
+      }
+      const lines = solution.split('\n');
+      let theoryLines = [];
+      let codeLines = [];
+      let inTheory = true;
+      for (const line of lines) {
+        if (inTheory && (line.startsWith('//') || line.startsWith('#') || line.trim() === '')) {
+          theoryLines.push(line);
+        } else {
+          inTheory = false;
+          codeLines.push(line);
+        }
+      }
+      if (theoryLines.length > 0) {
+        const theoryText = theoryLines.join('\n').replace(/\/\//g, '').replace(/\#/g, '');
+        const code = codeLines.join('\n');
+        const language = detectLanguage(code);
+        return {
+          theory: theoryText,
+          code,
+          language
+        };
+      }
+      const code = solution;
+      const language = detectLanguage(code);
+      return {
+        theory: 'No theoretical explanation provided.',
+        code,
+        language
+      };
+    }
+
+    // Update the size of the content
+    function updateContentSize() {
+      const containerHeight = Math.max(
+        mainContainer.scrollHeight,
+        questionSection.scrollHeight + theorySection.scrollHeight + codeText.scrollHeight + 150
+      );
+      ipcRenderer.send('content-size-changed', containerHeight);
+    }
+
+    // Event listeners
+    ipcRenderer.on('start-processing', (event) => {
+      console.log("[Overlay] Received start-processing event");
+      contentPanelElement.classList.remove('collapsed');
+      contentPanelElement.classList.add('expanded');
+      showLoading();
+    });
+
+    ipcRenderer.on('set-question', (event, text) => {
+      const problemSection = document.querySelector('.question-content');
+      problemSection.textContent = text;
+      contentPanelElement.classList.remove('collapsed');
+      hljs.highlightAll();
+    });
+
+    ipcRenderer.on('set-stealth-mode', (event, isStealth) => {
+      document.body.style.opacity = isStealth ? '0.3' : '1';
+    });
+
+    ipcRenderer.on('update-solution', (event, solution) => {
+      console.log("[Overlay] update-solution event received");
+      const {
+        theory,
+        code,
+        language
+      } = parseSolution(solution);
+      theoryContent.innerHTML = theory;
+      codeText.textContent = code;
+      codeText.className = `language-${language}`;
+      hljs.highlightElement(codeText);
+      hideLoading();
+      setTimeout(updateContentSize, 100);
+    });
+
+    // Copy code to clipboard
+    const copyBtn = document.getElementById('copy-btn');
+    copyBtn.addEventListener('click', () => {
+      const codeToCopy = codeText.textContent;
+      navigator.clipboard.writeText(codeToCopy)
+        .then(() => {
+          copyBtn.classList.add('success');
+          copyBtn.textContent = '✓ Copied!';
+          setTimeout(() => {
+            copyBtn.classList.remove('success');
+            copyBtn.innerHTML = `
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+              </svg>
+              Copy
+            `;
+          }, 2000);
+        })
+        .catch(err => {
+          copyBtn.textContent = '❌ Failed';
+          setTimeout(() => {
+            copyBtn.innerHTML = `
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+              </svg>
+              Copy
+            `;
+          }, 2000);
+        });
+    });
+
+    ipcRenderer.on('ai-result', (event, solution) => {
+      const theorySection = document.querySelector('.theory-content');
+      theorySection.textContent = solution;
+      hljs.highlightAll();
+      contentPanelElement.classList.add('expanded');
+    });
+
+    // Add click handlers for command bar buttons
+    document.addEventListener('DOMContentLoaded', () => {
+      const stealthBtn = document.querySelector('.cmd[data-command="stealthMode"]');
+      const ultraBtn = document.querySelector('.cmd[data-command="ultraStealthMode"]');
+      const captureBtn = document.querySelector('.cmd[data-command="capture"]');
+      const newBtn = document.querySelector('.cmd[data-command="newQuestion"]');
+      const toggleBtn = document.querySelector('.cmd[data-command="toggleOverlay"]');
+
+      stealthBtn.addEventListener('click', () => {
+        stealthMode = !stealthMode;
+        ipcRenderer.send('toggle-stealth-mode', stealthMode);
+        document.body.style.opacity = stealthMode ? 0.7 : 1.0;
+      });
+
+      ultraBtn.addEventListener('click', () => {
+        ultraMode = !ultraMode;
+        ipcRenderer.send('toggle-ultra-stealth-mode', ultraMode);
+        document.body.style.opacity = ultraMode ? 0.4 : 1.0;
+      });
+
+      captureBtn.addEventListener('click', () => {
+        console.log("[Overlay] Capture button clicked");
+        ipcRenderer.send('capture-code');
+      });
+
+      newBtn.addEventListener('click', () => {
+        ipcRenderer.send('new-question');
+        questionContent.textContent = 'Waiting for code capture...';
+        theoryContent.textContent = '';
+        codeText.textContent = '';
+        codeText.className = 'language-plaintext';
+        hljs.highlightElement(codeText);
+        setTimeout(updateContentSize, 100);
+      });
+
+      let clickThrough = true;
+      toggleBtn.addEventListener('click', () => {
+        clickThrough = !clickThrough;
+        ipcRenderer.send('toggle-click-through', clickThrough);
+      });
+    });
+
+    // Matrix-like random character animation for loading state (functions omitted for brevity)
+    ipcRenderer.on('set-command-visibility', (event, visibility) => {
+      const commands = document.querySelectorAll('.command');
+      commands.forEach(cmd => {
+        const cmdType = cmd.dataset.command;
+        cmd.style.display = visibility[cmdType] ? 'flex' : 'none';
+      });
+    });
+    ipcRenderer.on('set-ultra-stealth-mode', (event, isUltraStealth) => {
+      document.body.style.opacity = isUltraStealth ? 0.4 : 1.0;
+    });
+    ipcRenderer.on('new-question', () => {
+      questionContent.textContent = 'Waiting for code capture...';
+      theoryContent.textContent = '';
+      codeText.textContent = '';
+      codeText.className = 'language-plaintext';
+      hljs.highlightElement(codeText);
+      setTimeout(updateContentSize, 100);
+    });
+  </script>
 </body>
+
 </html>
