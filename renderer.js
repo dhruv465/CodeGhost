@@ -1,35 +1,5 @@
-// Note: We no longer need require('dotenv').config() here as the key
-// will be sent from the main process via preload.js for security.
-// We also remove direct access to 'fs' or 'localStorage' for the API key here.
 
 const { ipcRenderer } = require('electron'); // Only require ipcRenderer
-
-// We don't need these in the renderer anymore if main handles capture/OCR/AI
-// const { createWorker } = require('tesseract.js');
-// const { GoogleGenerativeAI } = require('@google/generative-ai');
-
-// Remove references to elements that might not exist in index.html
-// const captureBtn = document.getElementById('capture-btn');
-// const toggleOverlayBtn = document.getElementById('toggle-overlay-btn');
-// const statusElement = document.getElementById('status');
-// const capturedTextElement = document.getElementById('captured-text');
-// const apiKeyInput = document.getElementById('api-key');
-// const saveApiKeyBtn = document.getElementById('save-api-key');
-// let videoElement = document.getElementById('video');
-// let canvasElement = document.getElementById('canvas');
-// let canvasContext = canvasElement ? canvasElement.getContext('2d') : null;
-
-// State variables managed by index.html's script or received from main
-// let apiKey = ''; // Received via IPC/preload
-// let isCapturing = false; // State managed by main process
-// let selectedSourceId = null; // State managed by main process
-// let genAI = null; // Initialized in main process
-// let generationModel = null; // Initialized in main process
-// let isStealthMode = false; // Synced via IPC
-
-// --- Simplified Renderer Logic ---
-// The renderer (index.html) is now primarily responsible for displaying
-// information received from the main process and sending user interaction events.
 
 // Elements from index.html (ensure these IDs exist in your index.html)
 const questionContent = document.getElementById('question-content');
@@ -221,7 +191,7 @@ ipcRenderer.on('update-solution', (event, solution) => {
 
     // Optional: Adjust window size based on content
     // Be careful with this, might cause layout shifts
-    // setTimeout(updateContentSize, 150); // Delay slightly for rendering
+     setTimeout(updateContentSize, 150); // Delay slightly for rendering
 });
 
 
@@ -248,7 +218,7 @@ ipcRenderer.on('new-question', () => {
      }
      hideLoading(); // Ensure loading state is off
      // Keep panel expanded or collapse? User preference might be needed.
-     // if (contentPanelElement) contentPanelElement.classList.add('collapsed');
+      if (contentPanelElement) contentPanelElement.classList.add('collapsed');
  });
 
 
@@ -358,15 +328,3 @@ function handleLinkClick(event) {
         console.log(`[Overlay] Requesting to open external link: ${url}`);
     }
 }
-
-
-// Optional: Function to request window resize based on content
-// function updateContentSize() {
-//     // Be cautious with frequent resizing
-//     const desiredHeight = mainContainer ? mainContainer.scrollHeight + 30 : 600; // Add padding
-//     ipcRenderer.send('content-size-changed', desiredHeight);
-// }
-
-// No need for the API key saving logic or capture logic here anymore
-// Removed initialize(), initializeGeminiAPI(), captureScreen(), takeScreenshot(), processImage() etc.
-// Removed direct event listeners for captureBtn, toggleOverlayBtn, saveApiKeyBtn

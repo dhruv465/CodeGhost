@@ -121,8 +121,8 @@ function createOverlayWindow() {
       height
   } = screen.getPrimaryDisplay().workAreaSize;
   overlayWindow = new BrowserWindow({
-      width: 3456,
-      height: 2234,
+      width: 1040,
+      height: 800,
       x: Math.floor(width * 0.7),
       y: Math.floor(height * 0.2),
       transparent: true,
