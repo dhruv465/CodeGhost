@@ -18,12 +18,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^29.0.0",
+    "electron": "^29.4.6",
     "electron-builder": "^24.6.3"
   },
   "dependencies": {
     "@google/generative-ai": "^0.1.3",
-    "tesseract.js": "^5.0.4",
+    "dotenv": "^16.4.7",
+    "tesseract.js": "^5.1.1",
     "tesseract.js-core": "^6.0.0"
   },
   "build": {
