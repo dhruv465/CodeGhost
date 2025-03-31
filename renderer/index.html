@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>CodeGhost</title>
+    <meta name="apple-pay-not-capturable" content="true">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="screen-capture" content="deny">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com;">
+
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container" id="main-container">
+        <div class="cmd-bar-container">
+             <div class="cmd-bar">
+                  <div class="cmd command" data-command="capture">
+                    <span class="cmd-key">⌘⇧G</span>Capture
+                  </div>
+                  <div class="cmd command" data-command="stealthMode">
+                    <span class="cmd-key">⌘S</span>Stealth
+                  </div>
+                  <div class="cmd command" data-command="ultraStealthMode">
+                    <span class="cmd-key">⌘U</span>Ultra
+                  </div>
+                  <div class="cmd command" data-command="newQuestion">
+                    <span class="cmd-key">⌘↵</span>New
+                  </div>
+                  <div class="cmd command" data-command="toggleOverlay">
+                    <span class="cmd-key">⌘T</span>Toggle
+                  </div>
+                  <div class="cmd command" data-command="moveControls">
+                    <span class="cmd-key">⌘↑↓←→</span>Move
+                  </div>
+                  <div class="cmd command" data-command="moveControls">
+                    <span class="cmd-key">⌘1-4</span>Pos
+                  </div>
+              </div>
+             </div>
+
+        <div class="content-panel collapsed"> <div class="theory-panel">
+                <div class="theory-container">
+                    <div class="section-header">PROBLEM</div>
+                    <div class="question" id="question-section">
+                        <div id="question-content" class="content question-content">Waiting for code capture...</div>
+                        <div class="loading-content">
+                            <div class="skeleton skeleton-short"></div>
+                            <div class="skeleton skeleton-medium"></div>
+                            <div class="skeleton skeleton-long"></div>
+                            <div class="skeleton skeleton-medium"></div>
+                        </div>
+                    </div>
+
+                    <div class="section-header">APPROACH</div>
+                    <div class="theory" id="theory-section">
+                        <div id="theory-content" class="content theory-content"></div>
+                        <div class="loading-content">
+                             <div class="skeleton skeleton-medium"></div>
+                             <div class="skeleton skeleton-long"></div>
+                             <div class="skeleton skeleton-short"></div>
+                             <div class="skeleton skeleton-medium"></div>
+                             <div class="skeleton skeleton-long"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-panel">
+                <div class="code-container">
+                    <div class="section-header">CODE</div>
+                    <div class="code-wrapper" id="code-section-wrapper">
+                         <div class="code code-content-actual">
+                            <pre><code id="code-block-content" class="language-plaintext"></code></pre>
+                         </div>
+                         <div class="loading-content">
+                            <div class="skeleton skeleton-short"></div>
+                            <div class="skeleton skeleton-long"></div>
+                            <div class="skeleton skeleton-medium"></div>
+                            <div class="skeleton skeleton-long"></div>
+                            <div class="skeleton skeleton-medium"></div>
+                            <div class="skeleton skeleton-long"></div>
+                            <div class="skeleton skeleton-short"></div>
+                         </div>
+                        <button class="copy-btn" id="copy-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"> <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>
+                            <span>Copy</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+
+</html>

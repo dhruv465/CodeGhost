@@ -1,20 +1,21 @@
 // preload.js
 const { contextBridge, ipcRenderer } = require('electron');
 
-// Expose specific IPC channels to the renderer process for security
-// This acts as a bridge and limits what the renderer can access directly.
+console.log("[Preload] Script executing.");
+
+// Expose specific IPC channels safely to the renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
-    // Sending messages from Renderer to Main
+    // --- Send from Renderer to Main ---
     send: (channel, data) => {
-        // Whitelist channels renderer can send to
+        // Whitelist channels renderer is allowed to SEND ON
         let validSendChannels = [
-            'capture-code',
-            'toggle-click-through',
-            'toggle-stealth-mode',
-            'toggle-ultra-stealth-mode',
-            'new-question',
-            'content-size-changed', // If you use dynamic resizing
-            'open-external-link'
+            'capture-code',             // Request screen capture and processing
+            'toggle-click-through',     // Inform main about desired click-through state
+            'toggle-stealth-mode',      // Inform main about stealth toggle
+            'toggle-ultra-stealth-mode',// Inform main about ultra-stealth toggle
+            'new-question',             // Request to clear state
+            'open-external-link',       // Request to open a URL
+            // 'resize-overlay' // --- REMOVED: No longer needed ---
         ];
         if (validSendChannels.includes(channel)) {
             ipcRenderer.send(channel, data);
@@ -22,30 +23,32 @@ contextBridge.exposeInMainWorld('electronAPI', {
              console.warn(`[Preload] Blocked attempt to send on invalid channel: ${channel}`);
         }
     },
-    // Receiving messages from Main to Renderer
+
+    // --- Receive from Main in Renderer ---
     on: (channel, func) => {
-        // Whitelist channels renderer can receive from
+        // Whitelist channels renderer is allowed to LISTEN TO
         let validReceiveChannels = [
-            'start-processing',
-            'set-question',
-            'update-solution',
-            'set-stealth-mode',
-            'set-ultra-stealth-mode',
-            'new-question',
-            'set-command-visibility',
-             'set-api-key' // Channel to receive API key securely
+            'start-processing',         // Main signals start of capture/AI process
+            'set-question',             // Main sends extracted/filtered question text
+            'update-solution',          // Main sends the final AI-generated solution
+            'set-stealth-mode',         // Main sends current stealth mode state
+            'set-ultra-stealth-mode',   // Main sends current ultra-stealth mode state
+            'new-question',             // Main confirms/triggers new question state reset
+            'set-command-visibility',   // Main sends visibility flags for commands
+            'trigger-toggle-click-through', // Main requests renderer to toggle its state
+            'set-click-through-init'    // Main sends initial click-through state
         ];
         if (validReceiveChannels.includes(channel)) {
-            // Deliberately strip event as it includes `sender`
-            ipcRenderer.on(channel, (event, ...args) => func(...args));
+            // Deliberately strip event arg
+            const listener = (event, ...args) => func(...args);
+            ipcRenderer.on(channel, listener);
+             // Return an unsubscribe function
+             return () => { ipcRenderer.removeListener(channel, listener); };
         } else {
-            console.warn(`[Preload] Blocked attempt to listen on invalid channel: ${channel}`);
+             console.warn(`[Preload] Blocked attempt to listen on invalid channel: ${channel}`);
+              return () => {}; // Return empty unsubscribe function
         }
     },
-    // Function specifically to receive the API key (if needed in renderer, though better handled in main)
-     receiveApiKey: (callback) => {
-         ipcRenderer.on('set-api-key', (event, apiKey) => callback(apiKey));
-     }
 });
 
-console.log("[Preload] Script loaded successfully.");
+console.log("[Preload] electronAPI exposed.");
