@@ -166,8 +166,8 @@ function createOverlayWindow() {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
 
-    const initialWidth = 2000;
-    const initialHeight = 2000;
+    const initialWidth = 1040;
+    const initialHeight = 1040;
     console.warn(`[Main] Setting initial overlay size to ${initialWidth}x${initialHeight}. This will likely be constrained by screen dimensions (${screenWidth}x${screenHeight}).`);
 
     const constrainedWidth = Math.min(initialWidth, screenWidth);
