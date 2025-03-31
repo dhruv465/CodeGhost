@@ -166,34 +166,32 @@ function createOverlayWindow() {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
 
-    // --- UPDATED: Set fixed initial size (will be constrained by screen) ---
     const initialWidth = 2000;
     const initialHeight = 2000;
     console.warn(`[Main] Setting initial overlay size to ${initialWidth}x${initialHeight}. This will likely be constrained by screen dimensions (${screenWidth}x${screenHeight}).`);
-    // --- END UPDATED ---
 
-    // Position centered initially, considering potential screen constraints
     const constrainedWidth = Math.min(initialWidth, screenWidth);
     const constrainedHeight = Math.min(initialHeight, screenHeight);
     const initialX = Math.max(0, Math.floor((screenWidth - constrainedWidth) / 2));
     const initialY = Math.max(0, Math.floor((screenHeight - constrainedHeight) / 2));
 
-
     overlayWindow = new BrowserWindow({
-        width: initialWidth, // Set desired large size
-        height: initialHeight, // Set desired large size
+        width: initialWidth,
+        height: initialHeight,
         minWidth: MIN_WIDTH,
         minHeight: MIN_HEIGHT,
         x: initialX,
         y: initialY,
         transparent: true,
-        frame: false,
-        resizable: true, // Keep resizable for manual adjustments
+        // --- UPDATED: Show frame and use hiddenInset title bar for macOS controls ---
+        frame: true, // Set to true to show the frame
+        titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default', // Use inset controls on macOS
+        // --- END UPDATED ---
+        resizable: true,
         alwaysOnTop: true,
         skipTaskbar: true,
-        hasShadow: false,
-        fullscreenable: false,
-        titleBarStyle: 'hidden',
+        hasShadow: false, // Keep no shadow for overlay feel, or set true for standard window
+        fullscreenable: true, // Allow fullscreen/maximize
         webPreferences: {
             contextIsolation: true,
             nodeIntegration: false,
@@ -205,16 +203,17 @@ function createOverlayWindow() {
     // Platform-specific protections
      if (process.platform === 'darwin') {
         try {
-            overlayWindow.setWindowButtonVisibility(false);
+            // --- REMOVED: overlayWindow.setWindowButtonVisibility(false); --- (We want them visible now)
             overlayWindow.setContentProtection(true);
-            app.dock.hide();
+            app.dock.hide(); // Still hide dock icon if desired
             overlayWindow.setAlwaysOnTop(true, 'floating', 2);
             overlayWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
         } catch (e) { console.error('Error setting macOS specific window properties:', e); }
     } else if (process.platform === 'win32') {
+        // Windows/Linux will use standard frame due to titleBarStyle: 'default'
         try {
             overlayWindow.setContentProtection(true);
-            overlayWindow.setSkipTaskbar(true);
+            overlayWindow.setSkipTaskbar(true); // Keep off taskbar if desired
             overlayWindow.setAlwaysOnTop(true, 'screen-saver');
             overlayWindow.setVisibleOnAllWorkspaces(true);
         } catch (e) { console.error('Error setting Windows specific window properties:', e); }
