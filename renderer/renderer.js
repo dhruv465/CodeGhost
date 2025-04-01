@@ -10,10 +10,6 @@ if (window.electronAPI) {
     const codeSectionWrapper = document.getElementById('code-section-wrapper');
     const mainContainer = document.getElementById('main-container');
     const contentPanelElement = document.querySelector('.content-panel');
-    // const theoryPanel = document.querySelector('.theory-panel'); // No longer needed for resize
-    // const codePanel = document.querySelector('.code-panel');     // No longer needed for resize
-    // const theoryContainer = document.querySelector('.theory-container'); // No longer needed for resize
-    // const codeContainer = document.querySelector('.code-container');     // No longer needed for resize
     const copyBtn = document.getElementById('copy-btn');
     const copyBtnText = copyBtn ? copyBtn.querySelector('span') : null;
     const copyBtnIcon = copyBtn ? copyBtn.querySelector('svg') : null;
@@ -27,22 +23,20 @@ if (window.electronAPI) {
     let currentUltraStealthMode = false;
     let clickThroughEnabled = true;
 
-    // --- REMOVED: Resize Calculation and IPC ---
-    // function requestResize() { ... }
-
     // --- UI Update Functions ---
 
     function showLoading() {
-        // --- REMOVED: requestResize() call ---
         console.log("[Renderer] Showing Loading State");
         isLoading = true;
         if (questionSection) questionSection.classList.add('loading');
         if (theorySection) theorySection.classList.add('loading');
         if (codeSectionWrapper) codeSectionWrapper.classList.add('loading');
+        // Expand panel if not already expanded
         if (contentPanelElement && !contentPanelElement.classList.contains('expanded')) {
             contentPanelElement.classList.remove('collapsed');
             contentPanelElement.classList.add('expanded');
         }
+        // Clear previous content immediately on load start
         if(questionContent) questionContent.textContent = '';
         if(theoryContent) theoryContent.innerHTML = '';
         if(codeBlockContent) {
@@ -52,7 +46,6 @@ if (window.electronAPI) {
     }
 
     function hideLoading() {
-        // --- REMOVED: requestResize() call ---
         console.log("[Renderer] Hiding Loading State");
         isLoading = false;
         if (questionSection) questionSection.classList.remove('loading');
@@ -189,9 +182,7 @@ if (window.electronAPI) {
         if (toggleBtnElement) {
             toggleBtnElement.style.backgroundColor = isClickThrough ? '' : 'rgba(255, 100, 100, 0.3)';
             toggleBtnElement.style.color = isClickThrough ? '' : '#FFDDDD';
-            // --- Restore title mentioning scrolling ---
             toggleBtnElement.title = isClickThrough ? 'Click-through ON (Window ignores mouse)' : 'Click-through OFF (Window captures mouse - Scroll enabled)';
-            // --- End Restore ---
         }
     }
 
@@ -201,7 +192,6 @@ if (window.electronAPI) {
     });
 
     window.electronAPI.on('set-question', (text) => {
-        // --- REMOVED: requestResize() call ---
         console.log("[Renderer] Received set-question event");
         if (theorySection) theorySection.classList.remove('loading');
         if (codeSectionWrapper) codeSectionWrapper.classList.remove('loading');
@@ -209,6 +199,7 @@ if (window.electronAPI) {
         if (questionContent) {
             questionContent.textContent = text || 'Waiting for capture...';
         }
+        // Ensure panel is expanded when question is set
         if (contentPanelElement) {
             contentPanelElement.classList.remove('collapsed');
             contentPanelElement.classList.add('expanded');
@@ -233,7 +224,6 @@ if (window.electronAPI) {
     });
 
     window.electronAPI.on('update-solution', (solution) => {
-        // --- REMOVED: requestResize() call ---
         console.log("[Renderer] Received update-solution event");
         hideLoading(); // Hides loading
 
@@ -242,11 +232,11 @@ if (window.electronAPI) {
 
         if (theoryContent) {
              theoryContent.innerHTML = theory
-                 .replace(/&/g, "&")
-                 .replace(/</g, "<")
-                 .replace(/>/g, ">")
-                 .replace(/"/g, "")
-                 .replace(/'/g, "'")
+                 .replace(/&/g, "&amp;") // Basic HTML escaping
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;")
                  .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="#" data-url="$2" class="external-link" title="Open link in browser">$1</a>')
                  .replace(/\n/g, "<br>");
             addLinkListeners();
@@ -266,12 +256,12 @@ if (window.electronAPI) {
             } catch (e) {
                 console.error("[Renderer] Highlight.js error:", e);
                 codeBlockContent.className = 'language-plaintext hljs';
-                codeBlockContent.textContent = code;
+                codeBlockContent.textContent = code; // Show raw code on error
             }
         } else {
             console.error("[Renderer] Code block element (#code-block-content) not found!");
         }
-
+        // Ensure panel is expanded when solution arrives
         if (contentPanelElement) {
            contentPanelElement.classList.remove('collapsed');
            contentPanelElement.classList.add('expanded');
@@ -279,7 +269,6 @@ if (window.electronAPI) {
     });
 
      window.electronAPI.on('trigger-toggle-click-through', () => {
-         // (Keep existing logic)
          console.log("[Renderer] Received trigger-toggle-click-through from main");
          clickThroughEnabled = !clickThroughEnabled;
          window.electronAPI.send('toggle-click-through', clickThroughEnabled);
@@ -288,26 +277,33 @@ if (window.electronAPI) {
      });
 
      window.electronAPI.on('set-click-through-init', (initialState) => {
-         // (Keep existing logic)
          console.log(`[Renderer] Received initial click-through state: ${initialState}`);
          clickThroughEnabled = initialState;
          updateToggleButtonState(clickThroughEnabled);
      });
 
+     // *** MODIFIED: Handle panel collapse on 'new-question' ***
      window.electronAPI.on('new-question', () => {
-        // --- REMOVED: requestResize() call ---
-        console.log("[Renderer] Received new-question event (clearing fields)");
+        console.log("[Renderer] Received new-question event (clearing fields & collapsing panel)"); // Updated log
+
+        // Clear content fields
         if (questionContent) questionContent.textContent = 'Waiting for code capture...';
         if (theoryContent) theoryContent.innerHTML = '';
         if (codeBlockContent) {
             codeBlockContent.textContent = '';
             codeBlockContent.className = 'language-plaintext hljs';
         }
-        hideLoading(); // Hides loading
+
+        // Collapse the panel
+        if (contentPanelElement) {
+            contentPanelElement.classList.add('collapsed');
+            contentPanelElement.classList.remove('expanded');
+        }
+
+        hideLoading(); // Hides loading indicators
      });
 
      window.electronAPI.on('set-command-visibility', (visibility) => {
-         // --- REMOVED: requestResize() call ---
          console.log("[Renderer] Setting command visibility:", visibility);
          const commands = document.querySelectorAll('.cmd.command');
          commands.forEach(cmd => {
@@ -345,7 +341,7 @@ if (window.electronAPI) {
                             document.body.style.opacity = currentUltraStealthMode ? 0.4 : (currentStealthMode ? 0.7 : 1.0);
                             break;
                         case 'newQuestion':
-                            window.electronAPI.send('new-question');
+                            window.electronAPI.send('new-question'); // Send to main process
                             break;
                         case 'toggleOverlay':
                             clickThroughEnabled = !clickThroughEnabled;
@@ -361,7 +357,7 @@ if (window.electronAPI) {
         // Copy Button Logic
         if (copyBtn && codeBlockContent && copyBtnText && copyBtnIcon) {
             // (Keep existing copy button logic)
-            const originalButtonHTML = copyBtn.innerHTML;
+            const originalButtonHTML = copyBtn.innerHTML; // Store original HTML to restore icon + text
 
             copyBtn.addEventListener('click', () => {
                 const codeToCopy = codeBlockContent.textContent;
@@ -371,10 +367,10 @@ if (window.electronAPI) {
                             copyBtn.classList.add('success');
                             copyBtn.classList.remove('error');
                             copyBtnText.textContent = 'Copied!';
-                            copyBtnIcon.style.display = 'none';
+                            copyBtnIcon.style.display = 'none'; // Hide icon on success
                             setTimeout(() => {
                                 copyBtn.classList.remove('success');
-                                copyBtn.innerHTML = originalButtonHTML;
+                                copyBtn.innerHTML = originalButtonHTML; // Restore original content
                             }, 1500);
                         })
                         .catch(err => {
@@ -382,27 +378,26 @@ if (window.electronAPI) {
                             copyBtn.classList.add('error');
                             copyBtn.classList.remove('success');
                             copyBtnText.textContent = 'Error';
-                            copyBtnIcon.style.display = 'inline-block';
+                            copyBtnIcon.style.display = 'inline-block'; // Ensure icon is visible on error
                             setTimeout(() => {
                                 copyBtn.classList.remove('error');
-                                copyBtn.innerHTML = originalButtonHTML;
+                                copyBtn.innerHTML = originalButtonHTML; // Restore original content
                             }, 1500);
                         });
                 } else {
                     console.warn("[Renderer] Clipboard API not available or no code to copy.");
                     copyBtn.classList.add('error');
                     copyBtnText.textContent = 'No Code';
-                    copyBtnIcon.style.display = 'inline-block';
+                    copyBtnIcon.style.display = 'inline-block'; // Ensure icon is visible
                     setTimeout(() => {
                         copyBtn.classList.remove('error');
-                        copyBtn.innerHTML = originalButtonHTML;
+                        copyBtn.innerHTML = originalButtonHTML; // Restore original content
                     }, 1500);
                 }
             });
         }
 
         console.log("[Renderer] DOM fully loaded and event listeners attached.");
-        // --- REMOVED: Initial requestResize() call ---
 
     }); // End DOMContentLoaded
 

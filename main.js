@@ -235,9 +235,14 @@ function createOverlayWindow() {
          console.log("[Main] Overlay window finished loading.");
          overlayWindow.webContents.send('set-stealth-mode', stealthMode);
          overlayWindow.webContents.send('set-ultra-stealth-mode', ultraStealthMode);
+         // *** MODIFIED: Initial command visibility ***
          overlayWindow.webContents.send('set-command-visibility', {
-             capture: true, stealthMode: true, ultraStealthMode: true,
-             newQuestion: true, toggleOverlay: true, moveControls: true
+             capture: true,          // Show Capture
+             stealthMode: false,     // Hide Stealth
+             ultraStealthMode: false,// Hide Ultra
+             newQuestion: false,     // Hide New
+             toggleOverlay: false,   // Hide Toggle
+             moveControls: false     // Hide Move/Pos (assuming controlled together)
          });
          overlayWindow.webContents.send('set-click-through-init', true);
     });
@@ -313,7 +318,12 @@ function registerShortcuts() {
          'CommandOrControl+2': () => positionOverlayPreset('bottom-right'),
          'CommandOrControl+3': () => positionOverlayPreset('bottom-left'),
          'CommandOrControl+4': () => positionOverlayPreset('top-left'),
-         'CommandOrControl+Return': () => { if (overlayWindow) overlayWindow.webContents.send('new-question'); },
+         // *** MODIFIED: Changed 'new-question' IPC call to direct 'send' ***
+         'CommandOrControl+Return': () => {
+             if (overlayWindow && !overlayWindow.isDestroyed()) {
+                 ipcMain.emit('new-question'); // Use emit to trigger the listener below
+             }
+          },
          'CommandOrControl+Q': () => {
              console.log('[Main] Quit shortcut detected. Quitting app.');
              app.quit();
@@ -353,7 +363,25 @@ function registerShortcuts() {
 
  ipcMain.on('toggle-stealth-mode', (event, isStealth) => { stealthMode = isStealth; });
  ipcMain.on('toggle-ultra-stealth-mode', (event, isUltraStealth) => { ultraStealthMode = isUltraStealth; if (isUltraStealth) startRandomMovements(); else stopRandomMovements(); });
- ipcMain.on('new-question', () => { if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.webContents.send('new-question'); });
+
+ // *** MODIFIED: Central 'new-question' handler ***
+ ipcMain.on('new-question', () => {
+     console.log("[Main] Received new-question request.");
+     if (overlayWindow && !overlayWindow.isDestroyed()) {
+         overlayWindow.webContents.send('new-question'); // Tell renderer to clear fields & collapse panel
+
+         // Reset the command bar visibility
+         overlayWindow.webContents.send('set-command-visibility', {
+             capture: true,
+             stealthMode: false,
+             ultraStealthMode: false,
+             newQuestion: false,
+             toggleOverlay: false,
+             moveControls: false
+         });
+     }
+ });
+
  ipcMain.on('open-external-link', (event, url) => {
      // (Keep existing link handler)
      console.log(`[Main] Received request to open external link: ${url}`);
@@ -397,12 +425,22 @@ function registerShortcuts() {
 
  // --- Capture and Process Logic (Main Function) ---
  async function captureAndProcess() {
-    // (Keep existing captureAndProcess function)
+    // (Keep existing captureAndProcess function structure, adding command visibility)
     console.log('[Capture Flow] Starting captureAndProcess');
     if (!overlayWindow || overlayWindow.isDestroyed()) { console.error('[Capture Flow] Overlay window unavailable.'); dialog.showErrorBox("Error", "Overlay window not found."); return; }
     if (process.platform === 'darwin' && systemPreferences.getMediaAccessStatus('screen') !== 'granted') { console.error('[Capture Flow] Screen permission denied.'); dialog.showErrorBox("Permission Error", "Screen Recording permission required."); return; }
 
     overlayWindow.webContents.send('start-processing'); // Show loading UI
+
+    // *** ADDED: Expand command bar visibility ***
+    overlayWindow.webContents.send('set-command-visibility', {
+        capture: true,
+        stealthMode: true,
+        ultraStealthMode: true,
+        newQuestion: true,
+        toggleOverlay: true,
+        moveControls: true // Assuming Move and Pos are controlled together
+    });
 
     let sources;
     try {
