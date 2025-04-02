@@ -25,7 +25,7 @@
     "tesseract.js": "^5.1.0"
   },
   "build": {
-    "appId": "com.yourdomain.codeghost",
+    "appId": "com.CodeGhost.codeghost",
     "productName": "CodeGhost",
     "files": [
       "main.js",
@@ -37,18 +37,18 @@
     ],
     "mac": {
       "category": "public.app-category.developer-tools",
-      "icon": "assets/icon.icns",
+      "icon": "assets/CodeGhost.ico",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist"
     },
     "win": {
-      "icon": "assets/icon.ico",
+      "icon": "assets/CodeGhost.ico",
       "target": "nsis"
     },
     "linux": {
-      "icon": "assets/icon.png",
+      "icon": "assets/CodeGhost.png",
       "category": "Development",
       "target": "AppImage"
     },
