@@ -55,8 +55,7 @@ body {
   flex-shrink: 0;
   /* --- ADDED: Allow the container to shrink if the inner bar is small --- */
   width: fit-content; /* Make container only as wide as its content */
-  margin-left: auto; /* Center the container itself if needed */
-  margin-right: auto; /* Center the container itself if needed */
+ 
 }
 
 .cmd-bar-container:hover {
