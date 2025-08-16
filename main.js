@@ -305,6 +305,7 @@ function registerShortcuts() {
      console.log('[Main] Registering global shortcuts...');
      const shortcuts = {
          'CommandOrControl+Shift+G': async () => { if (overlayWindow && !overlayWindow.isDestroyed()) await captureAndProcess(); },
+         'CommandOrControl+M': () => { if (overlayWindow) overlayWindow.webContents.send('trigger-mic-mode'); },
          'CommandOrControl+S': () => { if (overlayWindow) { stealthMode = !stealthMode; overlayWindow.webContents.send('set-stealth-mode', stealthMode); console.log('[Main] Stealth mode toggled:', stealthMode); } },
          'CommandOrControl+U': () => { if (overlayWindow) { ultraStealthMode = !ultraStealthMode; overlayWindow.webContents.send('set-ultra-stealth-mode', ultraStealthMode); if (ultraStealthMode) startRandomMovements(); else stopRandomMovements(); console.log('[Main] Ultra-stealth mode toggled:', ultraStealthMode); } },
          'CommandOrControl+T': () => {
@@ -389,6 +390,17 @@ function registerShortcuts() {
           shell.openExternal(url).catch(err => { console.error(`[Main] Failed to open URL "${url}":`, err); dialog.showErrorBox("Link Error", `Could not open link: ${url}`); });
      } else { console.warn(`[Main] Blocked attempt to open invalid URL: ${url}`); }
   });
+
+// --- Audio Processing IPC Handlers ---
+ipcMain.on('process-audio-text', async (event, transcribedText) => {
+    console.log('[Main] Received audio text for processing:', transcribedText);
+    await processAudioText(transcribedText);
+});
+
+ipcMain.on('show-mic-error', (event, errorMessage) => {
+    console.error('[Main] Microphone error:', errorMessage);
+    dialog.showErrorBox("Microphone Error", errorMessage);
+});
 
  // --- Window Movement and Positioning ---
  function moveOverlay(deltaX, deltaY) {
@@ -515,6 +527,95 @@ Structure your entire response clearly using Markdown headings (e.g., ## Analysi
         }
     }
  }
+
+// --- Audio Processing Logic ---
+async function processAudioText(transcribedText) {
+    console.log('[Audio Flow] Starting processAudioText');
+    if (!overlayWindow || overlayWindow.isDestroyed()) {
+        console.error('[Audio Flow] Overlay window unavailable.');
+        dialog.showErrorBox("Error", "Overlay window not found.");
+        return;
+    }
+
+    overlayWindow.webContents.send('start-processing'); // Show loading UI
+
+    // *** Expand command bar visibility ***
+    overlayWindow.webContents.send('set-command-visibility', {
+        capture: true,
+        micMode: true,
+        stealthMode: true,
+        ultraStealthMode: true,
+        newQuestion: true,
+        toggleOverlay: true,
+        moveControls: true
+    });
+
+    try {
+        // Filter and display the transcribed text as the question
+        const filteredText = filterOcrText(transcribedText);
+        const textForDisplay = filteredText || transcribedText;
+        overlayWindow.webContents.send('set-question', textForDisplay);
+
+        // AI Call
+        if (!generationModel) {
+            console.error("[Audio Flow] Gemini model not initialized.");
+            overlayWindow.webContents.send('update-solution', "Error: AI model not ready.");
+            return;
+        }
+
+        const prompt = `Analyze the following programming problem description, which was extracted via speech recognition and might contain transcription errors. Focus ONLY on the core problem statement, examples, and constraints.
+
+Problem Description:
+\`\`\`text
+${textForDisplay}
+\`\`\`
+
+Provide a complete and well-structured solution:
+1.  **Analysis:** Briefly state the main goal and key requirements/constraints (2-3 sentences).
+2.  **Approach:** Clearly describe the algorithm or logic used. Mention data structures.
+3.  **Complexity:** Provide Time and Space complexity (e.g., O(N), O(log N), O(1)). Briefly justify.
+4.  **Code:** Write a complete, runnable code solution in the most likely language (detect from Python, Java, C++, JavaScript). Add concise comments for critical logic sections. Enclose the code in a single Markdown block like \`\`\`python ... \`\`\`.
+5.  **Explanation:** Briefly connect the code back to the approach.
+
+Structure your entire response clearly using Markdown headings (e.g., ## Analysis, ## Code).`;
+
+        console.log("[Audio Flow] Sending prompt to Gemini...");
+        const result = await generationModel.generateContent(prompt);
+        let solutionText = '';
+        if (result?.response?.text) {
+            solutionText = result.response.text();
+        } else if (result?.response?.candidates?.[0]?.content?.parts) {
+            solutionText = result.response.candidates[0].content.parts.map(part => part.text).join('');
+        } else {
+            console.error("[Audio Flow] Unexpected Gemini API response structure:", JSON.stringify(result, null, 2));
+            throw new Error("Could not parse solution from AI response.");
+        }
+        console.log("[Audio Flow] Received solution from AI.");
+        overlayWindow.webContents.send('update-solution', solutionText);
+
+    } catch (error) {
+        console.error("[Audio Flow] Error in audio processing:", error);
+        let errorMsg = error.message || "Unknown error.";
+        
+        // Handle different types of errors
+        if (errorMsg.includes('API key') || errorMsg.includes('PERMISSION_DENIED')) {
+            errorMsg = "Invalid Gemini API Key.";
+            dialog.showErrorBox("AI Generation Error", errorMsg);
+        } else if (errorMsg.includes('quota')) {
+            errorMsg = "Gemini API quota exceeded.";
+            dialog.showErrorBox("AI Generation Error", errorMsg);
+        } else if (errorMsg.includes('fetch') || errorMsg.includes('network')) {
+            errorMsg = "Network error contacting AI.";
+            dialog.showErrorBox("AI Generation Error", errorMsg);
+        } else {
+            dialog.showErrorBox("Audio Processing Error", `An error occurred: ${errorMsg}`);
+        }
+        
+        if (overlayWindow && !overlayWindow.isDestroyed()) {
+            overlayWindow.webContents.send('update-solution', `Error: ${errorMsg}`);
+        }
+    }
+}
 
  // --- OCR Processing Logic ---
  async function processImage(imageDataURL) {

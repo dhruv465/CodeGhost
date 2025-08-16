@@ -22,6 +22,10 @@ if (window.electronAPI) {
     let currentStealthMode = false;
     let currentUltraStealthMode = false;
     let clickThroughEnabled = true;
+    let isRecording = false;
+    let isProcessingAudio = false;
+    let recognition = null;
+    let speechRecognitionAvailable = false;
 
     // --- UI Update Functions ---
 
@@ -276,6 +280,11 @@ if (window.electronAPI) {
          console.log(`[Renderer] Click-through toggled via shortcut. Now: ${clickThroughEnabled ? 'ON' : 'OFF'}`);
      });
 
+     window.electronAPI.on('trigger-mic-mode', () => {
+         console.log("[Renderer] Received trigger-mic-mode from main");
+         toggleMicMode();
+     });
+
      window.electronAPI.on('set-click-through-init', (initialState) => {
          console.log(`[Renderer] Received initial click-through state: ${initialState}`);
          clickThroughEnabled = initialState;
@@ -314,9 +323,134 @@ if (window.electronAPI) {
          });
      });
 
+    // --- Microphone Functions ---
+    function initializeSpeechRecognition() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = () => {
+                console.log('[Renderer] Speech recognition started');
+                setRecordingState(true);
+            };
+            
+            recognition.onresult = (event) => {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    }
+                }
+                
+                if (finalTranscript.trim()) {
+                    console.log('[Renderer] Speech recognized:', finalTranscript);
+                    setProcessingState(true);
+                    window.electronAPI.send('process-audio-text', finalTranscript);
+                }
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('[Renderer] Speech recognition error:', event.error);
+                setRecordingState(false);
+                setProcessingState(false);
+                
+                // Show user-friendly error
+                if (event.error === 'not-allowed') {
+                    window.electronAPI.send('show-mic-error', 'Microphone access denied. Please allow microphone access and try again.');
+                } else if (event.error === 'no-speech') {
+                    window.electronAPI.send('show-mic-error', 'No speech detected. Please try speaking again.');
+                } else {
+                    window.electronAPI.send('show-mic-error', `Speech recognition error: ${event.error}`);
+                }
+            };
+            
+            recognition.onend = () => {
+                console.log('[Renderer] Speech recognition ended');
+                setRecordingState(false);
+                if (isProcessingAudio) {
+                    setProcessingState(false);
+                }
+            };
+            
+            speechRecognitionAvailable = true;
+            console.log('[Renderer] Speech recognition initialized');
+        } else {
+            console.warn('[Renderer] Speech recognition not supported');
+            speechRecognitionAvailable = false;
+        }
+    }
+    
+    function toggleMicMode() {
+        if (!speechRecognitionAvailable) {
+            window.electronAPI.send('show-mic-error', 'Speech recognition is not supported in this browser.');
+            return;
+        }
+        
+        if (isRecording) {
+            stopRecording();
+        } else {
+            startRecording();
+        }
+    }
+    
+    function startRecording() {
+        if (!recognition || isRecording) return;
+        
+        try {
+            recognition.start();
+            console.log('[Renderer] Starting speech recognition');
+        } catch (error) {
+            console.error('[Renderer] Error starting speech recognition:', error);
+            window.electronAPI.send('show-mic-error', 'Failed to start recording. Please try again.');
+        }
+    }
+    
+    function stopRecording() {
+        if (!recognition || !isRecording) return;
+        
+        try {
+            recognition.stop();
+            console.log('[Renderer] Stopping speech recognition');
+        } catch (error) {
+            console.error('[Renderer] Error stopping speech recognition:', error);
+        }
+    }
+    
+    function setRecordingState(recording) {
+        isRecording = recording;
+        const micButton = document.querySelector('.cmd[data-command="micMode"]');
+        if (micButton) {
+            if (recording) {
+                micButton.classList.add('recording');
+                micButton.classList.remove('processing');
+            } else {
+                micButton.classList.remove('recording');
+            }
+        }
+    }
+    
+    function setProcessingState(processing) {
+        isProcessingAudio = processing;
+        const micButton = document.querySelector('.cmd[data-command="micMode"]');
+        if (micButton) {
+            if (processing) {
+                micButton.classList.add('processing');
+                micButton.classList.remove('recording');
+            } else {
+                micButton.classList.remove('processing');
+            }
+        }
+    }
+
 
     // --- DOM Event Listeners ---
     document.addEventListener('DOMContentLoaded', () => {
+        // Initialize speech recognition on load
+        initializeSpeechRecognition();
 
         // Command Bar Click Handling
         if (commandBar) {
@@ -329,6 +463,9 @@ if (window.electronAPI) {
                     switch (command) {
                         case 'capture':
                             window.electronAPI.send('capture-code');
+                            break;
+                        case 'micMode':
+                            toggleMicMode();
                             break;
                         case 'stealthMode':
                             currentStealthMode = !currentStealthMode;

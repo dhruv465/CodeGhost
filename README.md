@@ -5,7 +5,9 @@ CodeGhost is a desktop application that helps candidates during coding interview
 ## Features
 
 - **Screen Capture**: Capture coding problems directly from your screen (`Cmd+Shift+G`).
+- **Microphone Mode**: Listen to coding problems via speech recognition (`Cmd+M`).
 - **OCR Processing**: Extract text from captured screenshots using Tesseract.js.
+- **Speech Recognition**: Real-time transcription of interview questions and problems.
 - **AI Solution Generation**: Generate solutions using Gemini AI.
 - **Stealth Overlay**: Display solutions in a transparent overlay window that remains invisible during screen sharing.
 - **Interaction Toggle**: Temporarily disable click-through to scroll or interact with the overlay (`Cmd+T`).
@@ -57,12 +59,13 @@ CodeGhost includes advanced techniques to help you stay undetected during interv
 ### Usage
 
 1.  Launch the application.
-2.  Use the "Capture" button or press `Cmd+Shift+G` (or `Ctrl+Shift+G` on Win/Linux) to capture your screen.
-3.  The application will process the image, extract text, and generate a solution.
-4.  View the solution in the overlay window.
-5.  **Scrolling/Interaction**: Press `Cmd+T` (or `Ctrl+T`) to disable click-through. You can now scroll the content panels with your mouse or interact with links. Press `Cmd+T` again to re-enable click-through.
-6.  Toggle stealth mode with `Cmd+S` (or `Ctrl+S`).
-7.  Toggle ultra-stealth mode with `Cmd+U` (or `Ctrl+U`).
+2.  **Screen Capture Mode**: Use the "Capture" button or press `Cmd+Shift+G` (or `Ctrl+Shift+G` on Win/Linux) to capture your screen.
+3.  **Microphone Mode**: Use the "Mic" button or press `Cmd+M` (or `Ctrl+M` on Win/Linux) to listen to interview questions. Speak clearly and the application will transcribe and process your speech.
+4.  The application will process the input (image or speech), extract/transcribe text, and generate a solution.
+5.  View the solution in the overlay window.
+6.  **Scrolling/Interaction**: Press `Cmd+T` (or `Ctrl+T`) to disable click-through. You can now scroll the content panels with your mouse or interact with links. Press `Cmd+T` again to re-enable click-through.
+7.  Toggle stealth mode with `Cmd+S` (or `Ctrl+S`).
+8.  Toggle ultra-stealth mode with `Cmd+U` (or `Ctrl+U`).
 8.  Move the overlay with `Cmd+Arrow Keys` (or `Ctrl+Arrow Keys`).
 9.  Use positioning presets `Cmd+1` to `Cmd+4` (or `Ctrl+1` to `Ctrl+4`).
 10. Start a new question/clear fields with `Cmd+Enter` (or `Ctrl+Enter`).
@@ -71,6 +74,7 @@ CodeGhost includes advanced techniques to help you stay undetected during interv
 ## Keyboard Shortcuts
 
 - **Capture Screen**: `Cmd+Shift+G` / `Ctrl+Shift+G`
+- **Toggle Microphone Mode**: `Cmd+M` / `Ctrl+M`
 - **Toggle Interaction (for Scrolling)**: `Cmd+T` / `Ctrl+T`
 - **Toggle Stealth Mode**: `Cmd+S` / `Ctrl+S`
 - **Toggle Ultra-Stealth Mode**: `Cmd+U` / `Ctrl+U`
@@ -83,6 +87,7 @@ CodeGhost includes advanced techniques to help you stay undetected during interv
 
 - **Electron**: Cross-platform desktop application framework
 - **Tesseract.js**: Optical Character Recognition (OCR) engine
+- **Web Speech API**: Real-time speech recognition for microphone mode
 - **Gemini API**: Google's AI model for solution generation
 
 ## License
