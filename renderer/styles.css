@@ -325,3 +325,52 @@ width: var(--width, 100%);
 .loading .content { display: none; }
 .loading .loading-content { display: block; }
 .loading-content { display: none; }
+
+/* Mic Mode Styles */
+.mic-indicator {
+  margin-left: 4px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.cmd[data-command="micMode"] .mic-indicator {
+  filter: grayscale(1);
+}
+
+.cmd[data-command="micMode"].recording .mic-indicator {
+  filter: grayscale(0);
+  animation: pulse-mic 1.5s infinite;
+  color: #ff4444;
+}
+
+.cmd[data-command="micMode"].recording {
+  color: #ff4444;
+  opacity: 1;
+}
+
+@keyframes pulse-mic {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+/* Audio processing indicator */
+.cmd[data-command="micMode"].processing .mic-indicator {
+  filter: grayscale(0);
+  animation: spin 1s linear infinite;
+  color: #4444ff;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

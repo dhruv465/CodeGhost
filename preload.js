@@ -15,6 +15,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
             'toggle-ultra-stealth-mode',// Inform main about ultra-stealth toggle
             'new-question',             // Request to clear state
             'open-external-link',       // Request to open a URL
+            'process-audio-text',       // Send transcribed audio text for AI processing
+            'show-mic-error',           // Show microphone error to user
             // 'resize-overlay' // --- REMOVED: No longer needed ---
         ];
         if (validSendChannels.includes(channel)) {
@@ -36,7 +38,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
             'new-question',             // Main confirms/triggers new question state reset
             'set-command-visibility',   // Main sends visibility flags for commands
             'trigger-toggle-click-through', // Main requests renderer to toggle its state
-            'set-click-through-init'    // Main sends initial click-through state
+            'set-click-through-init',   // Main sends initial click-through state
+            'trigger-mic-mode'          // Main requests renderer to toggle mic mode
         ];
         if (validReceiveChannels.includes(channel)) {
             // Deliberately strip event arg
