@@ -324,6 +324,10 @@ if (window.electronAPI) {
      });
 
     // --- Microphone Functions ---
+    let speechRetryCount = 0;
+    const MAX_SPEECH_RETRIES = 3;
+    const SPEECH_RETRY_DELAY = 2000; // 2 seconds
+    
     function initializeSpeechRecognition() {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -358,12 +362,19 @@ if (window.electronAPI) {
                 setRecordingState(false);
                 setProcessingState(false);
                 
-                // Show user-friendly error
-                if (event.error === 'not-allowed') {
+                // Handle network-related errors with retry mechanism
+                if (event.error === 'network') {
+                    handleNetworkError();
+                } else if (event.error === 'not-allowed') {
+                    speechRetryCount = 0; // Reset retry count for permission errors
                     window.electronAPI.send('show-mic-error', 'Microphone access denied. Please allow microphone access and try again.');
                 } else if (event.error === 'no-speech') {
+                    speechRetryCount = 0; // Reset retry count for no-speech errors
                     window.electronAPI.send('show-mic-error', 'No speech detected. Please try speaking again.');
+                } else if (event.error === 'service-not-allowed') {
+                    window.electronAPI.send('show-mic-error', 'Speech recognition service not available. Please check your internet connection.');
                 } else {
+                    speechRetryCount = 0; // Reset retry count for other errors
                     window.electronAPI.send('show-mic-error', `Speech recognition error: ${event.error}`);
                 }
             };
@@ -384,6 +395,24 @@ if (window.electronAPI) {
         }
     }
     
+    function handleNetworkError() {
+        if (speechRetryCount < MAX_SPEECH_RETRIES) {
+            speechRetryCount++;
+            console.log(`[Renderer] Network error occurred, retrying ${speechRetryCount}/${MAX_SPEECH_RETRIES}`);
+            window.electronAPI.send('show-mic-error', `Network error. Retrying ${speechRetryCount}/${MAX_SPEECH_RETRIES}...`);
+            
+            // Retry after delay
+            setTimeout(() => {
+                if (!isRecording && speechRecognitionAvailable) {
+                    startRecording();
+                }
+            }, SPEECH_RETRY_DELAY);
+        } else {
+            speechRetryCount = 0; // Reset for next session
+            window.electronAPI.send('show-mic-error', 'Network error: Speech recognition service unavailable. Please check your internet connection and try again.');
+        }
+    }
+    
     function toggleMicMode() {
         if (!speechRecognitionAvailable) {
             window.electronAPI.send('show-mic-error', 'Speech recognition is not supported in this browser.');
@@ -401,11 +430,17 @@ if (window.electronAPI) {
         if (!recognition || isRecording) return;
         
         try {
+            // Reset retry count when starting a new recording session
+            speechRetryCount = 0;
             recognition.start();
             console.log('[Renderer] Starting speech recognition');
         } catch (error) {
             console.error('[Renderer] Error starting speech recognition:', error);
-            window.electronAPI.send('show-mic-error', 'Failed to start recording. Please try again.');
+            if (error.name === 'NetworkError' || error.message.includes('network')) {
+                handleNetworkError();
+            } else {
+                window.electronAPI.send('show-mic-error', 'Failed to start recording. Please try again.');
+            }
         }
     }
     

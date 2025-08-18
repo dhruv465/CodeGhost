@@ -480,6 +480,11 @@ ipcMain.on('show-mic-error', (event, errorMessage) => {
 
          const prompt = `Analyze the following programming problem description, which was extracted via OCR and might contain noise. Focus ONLY on the core problem statement, examples, and constraints.
 
+IMPORTANT: When interpreting the problem description, pay special attention to:
+- "//" marks within quoted strings should be treated as part of the string content, NOT as comments
+- Text within quotes containing "//" likely represents actual string literals or examples
+- Distinguish between code comments (// outside quotes) and string content (// inside quotes)
+
 Problem Description:
 \`\`\`text
 ${textForDisplay}
@@ -564,6 +569,11 @@ async function processAudioText(transcribedText) {
         }
 
         const prompt = `Analyze the following programming problem description, which was extracted via speech recognition and might contain transcription errors. Focus ONLY on the core problem statement, examples, and constraints.
+
+IMPORTANT: When interpreting the problem description, pay special attention to:
+- "//" marks within quoted strings should be treated as part of the string content, NOT as comments
+- Text within quotes containing "//" likely represents actual string literals or examples
+- Distinguish between code comments (// outside quotes) and string content (// inside quotes)
 
 Problem Description:
 \`\`\`text
